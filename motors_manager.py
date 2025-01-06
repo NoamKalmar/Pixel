@@ -5,22 +5,14 @@ class MotorsManager:
         self.arduino = arduino
         self.pins = pins
 
-    def turn_motor_by_pin(self, pin: int, forward: bool):
-        if forward:
-            self.arduino.digital[pin[0]].write(1)
-            self.arduino.digital[pin[1]].write(0)
-        else:
-            self.arduino.digital[pin[0]].write(0)
-            self.arduino.digital[pin[1]].write(1)
+    def turn_motor_by_index(self, index: int, velocity: int = 255):
+        velocity = max(min(velocity, 255), -255)
+        pin1_value = 0 if velocity < 0 else 1
+        pin2_value = 0 if velocity > 0 else 1
+        self.arduino.digital[self.pins[index][0]].write(pin1_value)
+        self.arduino.digital[self.pins[index][1]].write(pin2_value)
+        self.arduino.digital[self.pins[index][2]].write(abs(velocity) /  255)
 
-    def stop_motor_by_pin(self, pin: int):
-        self.arduino.digital[pin[0]].write(0)
-        self.arduino.digital[pin[1]].write(0)
-
-    def turn_all_motors(self, forward: bool):
-        for pin in self.pins:
-            self.turn_motor_by_pin(pin, forward)
-
-    def stop_all_motors(self):
-        for pin in self.pins:
-            self.stop_motor_by_pin(pin)
+    def turn_all_motors(self, velocity: int):
+        for i in range(len(self.pins)):
+            self.turn_motor_by_index(i, velocity)

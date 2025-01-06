@@ -4,6 +4,7 @@ from pyfirmata import Arduino
 
 import detect_landmarks
 from servos_manager import ServosManager
+from motors_manager import MotorsManager
 from robot import Robot
 
 WIDTH, HEIGHT = 600, 600
@@ -13,9 +14,9 @@ emotion_video_paths = [f"{emotion_videos_foler_path}/happy.mp4",
                        f"{emotion_videos_foler_path}/sad.mp4", 
                        f"{emotion_videos_foler_path}/neutral.mp4"]
 
-PORT = "COM13"
+PORT = "COM7"
 BAUDRATE = 115200
-# board = Arduino(PORT)
+board = Arduino(PORT)
 hands_pins = [i for i in range(7)]
 
 mp_holistic = mp.solutions.holistic
@@ -28,6 +29,7 @@ def read_emotion_videos(paths):
         video = cv2.VideoCapture(path)
         videos.append(video)
     return videos
+
 
 def main():
     videos = read_emotion_videos(emotion_video_paths)
@@ -56,5 +58,9 @@ def main():
             
     cap.release()
 
+
 if __name__ == "__main__":
+    motors_manager = MotorsManager(board, [(2, 3, 5)])
+    motors_manager.turn_all_motors(255)
+    exit()
     main()

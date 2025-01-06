@@ -34,6 +34,7 @@ class Robot:
         self.name = name
         self.arduino = arduino
         self.hands_manager = hands_manager
+        self.motors_manager = motors_manager
         self.head_angle = 90
         self.angles = [i for i in range(7)]
         
