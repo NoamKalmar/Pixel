@@ -23,18 +23,18 @@ def holistic_detect(holistic, image):
     
     image.flags.writeable = True
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)  
-    # mp_drawing.draw_landmarks(
-    #     image=image, 
-    #     landmark_list=results.face_landmarks, 
-    #     connections=mp_holistic.FACEMESH_CONTOURS, 
-    #     landmark_drawing_spec=None, 
-    #     connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_contours_style())
-    # mp_drawing.draw_landmarks(
-    #     image=image, 
-    #     landmark_list=results.face_landmarks, 
-    #     connections=mp_holistic.FACEMESH_TESSELATION, 
-    #     landmark_drawing_spec=None, 
-    #     connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_tesselation_style())
+    mp_drawing.draw_landmarks(
+        image=image, 
+        landmark_list=results.face_landmarks, 
+        connections=mp_holistic.FACEMESH_CONTOURS, 
+        landmark_drawing_spec=None, 
+        connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_contours_style())
+    mp_drawing.draw_landmarks(
+        image=image, 
+        landmark_list=results.face_landmarks, 
+        connections=mp_holistic.FACEMESH_TESSELATION, 
+        landmark_drawing_spec=None, 
+        connection_drawing_spec=mp_drawing_styles.get_default_face_mesh_tesselation_style())
     # mp_drawing.draw_landmarks(
     #       image=image,
     #       landmark_list=holistic_results.face_landmarks,

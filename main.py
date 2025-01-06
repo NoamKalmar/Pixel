@@ -46,7 +46,7 @@ def main():
                     print("Empty camera frame")
                     continue
                     
-                success = pixel.loop(image)
+                success = pixel.loop(image, True)
                 if success[0] == 1:
                     print(success[1])
                     continue

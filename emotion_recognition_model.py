@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 MODEL_PATH = "emotion_recognition_model.keras"
+DATASET_PATH = "face_data.csv"
 INPUT_SHAPE = (1404)
 
 
@@ -27,15 +28,10 @@ def get_model(input_shape):
     model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
     return model
 
-def train_and_save(model_path, input_shape):
-
-    learning_rate = 0.0002
-    epochs = 30
-    batch_size = 32
-
-    DATASET_PATH = "face_data.csv"
-
-    train = pd.read_csv(DATASET_PATH)
+def train_model(
+        model, dataset_path: str, input_shape: tuple, learning_rate: float = 0.0002, epochs: int = 30, batch_size: int = 32
+) -> None:
+    train = pd.read_csv(dataset_path),
     X_train = (train.iloc[:,1:].values).astype("float64")
     y_train = train.iloc[:,0].values.astype("int32")
     y_train = keras.utils.to_categorical(y_train)
@@ -44,16 +40,20 @@ def train_and_save(model_path, input_shape):
     model.optimizer.lr = learning_rate
 
     model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1)
-    model.save(model_path)
+    return model
 
-def predict_emotion(model, landmarks):
-    seed = 43
-    np.random.seed(seed)
+def predict_emotion(model, landmarks, random_seed: int = 13) -> int:
+    np.random.seed(random_seed)
 
     prediction = model.predict(np.array([landmarks]))
     predicted_emotion = np.argmax(prediction)
     probability = prediction[0][predicted_emotion]
     return predicted_emotion, probability
 
+def main() -> None:
+    model = get_model()
+    model = train_model(model, DATASET_PATH, INPUT_SHAPE)
+    model.save(MODEL_PATH)
+
 if __name__ == "__main__":
-    train_and_save(MODEL_PATH, INPUT_SHAPE)
+    main()
