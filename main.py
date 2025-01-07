@@ -14,16 +14,17 @@ emotion_video_paths = [f"{emotion_videos_foler_path}/happy.mp4",
                        f"{emotion_videos_foler_path}/sad.mp4", 
                        f"{emotion_videos_foler_path}/neutral.mp4"]
 
-PORT = "COM7"
+PORT = "COM13"
 BAUDRATE = 115200
-board = Arduino(PORT)
-hands_pins = [i for i in range(7)]
+# board = Arduino(PORT)
+HANDS_PINS = [i for i in range(7)]
+MOTORS_PINS = []
 
 mp_holistic = mp.solutions.holistic
 mp_face_mesh = mp.solutions.face_mesh
 mp_face_detection = mp.solutions.face_detection
 
-def read_emotion_videos(paths):
+def read_emotion_videos(paths: list) -> list:
     videos = []
     for path in paths:
         video = cv2.VideoCapture(path)
@@ -36,7 +37,8 @@ def main():
     cap = cv2.VideoCapture(0)
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
         with mp_face_detection.FaceDetection(model_selection=0, min_detection_confidence=0.5) as face_detection:
-            # hands_manager = ServosManager(hands_pins, arduino, 0)
+            # hands_manager = ServosManager(board, hand_pins, 0)
+            # motors_manager = MotorsManager(board, MOTORS_PINS)
             pixel = Robot(holistic=holistic, face_detection=face_detection, arduino=None, name="Pixel")
 
             while cap.isOpened():
@@ -48,7 +50,7 @@ def main():
                     print("Empty camera frame")
                     continue
                     
-                success = pixel.loop(image, True)
+                success = pixel.loop(image, True, 750)
                 if success[0] == 1:
                     print(success[1])
                     continue
@@ -60,7 +62,4 @@ def main():
 
 
 if __name__ == "__main__":
-    motors_manager = MotorsManager(board, [(2, 3, 5)])
-    motors_manager.turn_all_motors(255)
-    exit()
     main()

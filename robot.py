@@ -19,7 +19,10 @@ import time
 import detect_landmarks
 from servos_manager import ServosManager
 from motors_manager import MotorsManager
-from pose_landmarks import get_points, vectors_angle
+import pose_landmarks
+import image_verification
+
+BLACK = (0, 0, 0)
 
 class Robot:
     def __init__(
@@ -37,14 +40,31 @@ class Robot:
         self.motors_manager = motors_manager
         self.head_angle = 90
         self.angles = [i for i in range(7)]
+        self.unwanted_boxes = []
+        self.landmarks = {}
+        self.distance_to_human = None
         
         # default_face_image = face_recognition.load_image_file("face.jpg")
         # self.default_face_encoing = face_recognition.face_encodings(default_face_image)[0]
         
-    def loop(self, image: np.ndarray, display_frame: bool) -> None:
-        self.landmarks, modified_image = detect_landmarks.holistic_detect(self.holistic, image)
+    def loop(self, image: np.ndarray, display_frame: bool, max_distance: int = None) -> tuple:
+        covered_image = image.copy()
+        covered_image = image_verification.cover_image(covered_image, self.unwanted_boxes)
+        self.landmarks, modified_image = detect_landmarks.holistic_detect(self.holistic, covered_image)
+        modified_image = cv2.flip(modified_image, 1)
+        if self.landmarks["pose"] is None:
+            return (0, None)
+        
+        self.calculate_distance()
+        if max_distance and self.distance_to_human > max_distance:
+            self.unwanted_boxes = [self.get_human_box(modified_image.shape)]
+            print(self.unwanted_boxes)
+        else:
+            self.unwanted_boxes = []
+            print(self.distance_to_human)
+
         if display_frame:
-            modified_image = cv2.flip(modified_image, 1)
+            # modified_image = image_verification.verify_by_face(image)
             cv2.imshow(self.name, modified_image)
         return (0, None)
 
@@ -59,8 +79,25 @@ class Robot:
     #     face_locations = face_recognition.face_locations(img)
     #     print(face_locations[0])
     #     print(face_indexes)
+    
+    def calculate_distance(self, focal_length: int = 800) -> None:
+        # left_shoulder = self.landmarks["pose"][11]
+        # right_shoulder = self.landmarks["pose"][12]
+        # shoulder_distance = np.sqrt(
+        #     (left_shoulder.x - right_shoulder.x) ** 2 + 
+        #     (left_shoulder.y - right_shoulder.y) ** 2 + 
+        #     (left_shoulder.z - right_shoulder.z) ** 2
+        # )
+        # self.distance_to_human = focal_length / shoulder_distance
+        self.distance_to_human = focal_length / -self.landmarks["pose"][0].z
         
-        
+    def get_human_box(self, image_shape: tuple):
+        left_x = round((max(min(self.landmarks["pose"][12].x - 0.1, 1), 0)) * image_shape[1])
+        right_x = round((max(min(self.landmarks["pose"][11].x + 0.1, 1), 0)) * image_shape[1])
+        up_y = round(max(min(self.landmarks["pose"][1].y - 0.1, 1), 0) * image_shape[0])
+        down_y = round(max(min(self.landmarks["pose"][30].y + 0.1, 1), 0) * image_shape[0])
+        return (left_x, up_y), (right_x, down_y)
+
     def get_cropped_face(self, image: np.ndarray, detection) -> np.ndarray:
         x = max(math.floor((detection.location_data.relative_bounding_box.xmin - 0.1) * image.shape[1]), 0)
         y = max(math.floor((detection.location_data.relative_bounding_box.ymin - 0.1) * image.shape[0]), 0)
@@ -71,7 +108,7 @@ class Robot:
         return modified_image
 
     def calculate_angles(self) -> list:
-        points = get_points([11, 13, 15, 12, 14, 16])
+        points = pose_landmarks.get_points([11, 13, 15, 12, 14, 16])
         a1 = points[0]
         b1 = points[1]
         c1 = points[2]
@@ -87,20 +124,20 @@ class Robot:
         d2 = {"x": a2["x"], "y": a2["y"] - 0.1, "z": a2["z"]}
         e2 = {"x": a2["x"] + 0.1, "y": a2["y"], "z": a2["z"]}
 
-        angle1 = 180 - vectors_angle([a1, b1, e1])
+        angle1 = 180 - pose_landmarks.vectors_angle([a1, b1, e1])
         angle1 = (angle1 - 60) * 3
-        angle2 = 180 - vectors_angle([a1, b1, d1])
+        angle2 = 180 - pose_landmarks.vectors_angle([a1, b1, d1])
         if angle2 > 120:
             angle2 = angle2 + ((angle2 - 120) * 3)
-        angle3 = 180 - vectors_angle([b1, a1, c1]) + 30
+        angle3 = 180 - pose_landmarks.vectors_angle([b1, a1, c1]) + 30
 
-        angle4 = vectors_angle([a2, b2, e2])
+        angle4 = pose_landmarks.vectors_angle([a2, b2, e2])
         angle4 = (angle4 - 60) * 3
         angle4 -= 70
-        angle5 = vectors_angle([a2, b2, d2])
+        angle5 = pose_landmarks.vectors_angle([a2, b2, d2])
         if angle5 < 70:
             angle5 = angle5 - ((70 - angle5) * 3)
-        angle6 = 180 - vectors_angle([b2, a2, c2])
+        angle6 = 180 - pose_landmarks.vectors_angle([b2, a2, c2])
         angle6 -= 45
         angle6 * 90 / 80
         angle6 = 90 - angle6
