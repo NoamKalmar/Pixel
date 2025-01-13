@@ -6,6 +6,7 @@ import detect_landmarks
 from servos_manager import ServosManager
 from motors_manager import MotorsManager
 from robot import Robot
+import shows
 
 WIDTH, HEIGHT = 600, 600
 
@@ -46,17 +47,7 @@ def main():
                 if key == ord("q"):
                     break
                 success, image = cap.read()
-                if not success:
-                    print("Empty camera frame")
-                    continue
-                    
-                success = pixel.loop(image, True, 750)
-                if success[0] == 1:
-                    print(success[1])
-                    continue
-                elif success[0] == 2:
-                    print(success[1])
-                    break
+                shows.main_show(robot=pixel, frame=image)
             
     cap.release()
 

@@ -54,14 +54,6 @@ class Robot:
         modified_image = cv2.flip(modified_image, 1)
         if self.landmarks["pose"] is None:
             return (0, None)
-        
-        self.calculate_distance()
-        if max_distance and self.distance_to_human > max_distance:
-            self.unwanted_boxes = [self.get_human_box(modified_image.shape)]
-            print(self.unwanted_boxes)
-        else:
-            self.unwanted_boxes = []
-            print(self.distance_to_human)
 
         if display_frame:
             # modified_image = image_verification.verify_by_face(image)
