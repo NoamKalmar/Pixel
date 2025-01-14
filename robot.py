@@ -18,7 +18,7 @@ import time
 
 import detect_landmarks
 from servos_manager import ServosManager
-from motors_manager import MotorsManager
+from motors_manager import RobotMotorsManager
 import pose_landmarks
 import image_verification
 
@@ -29,7 +29,7 @@ class Robot:
             self, holistic, face_detection,
             arduino: Arduino=None,
             hands_manager: ServosManager=None,
-            motors_manager: MotorsManager=None,
+            motors_manager: RobotMotorsManager=None,
             name="Robot"
     ):
         self.holistic = holistic
@@ -49,14 +49,13 @@ class Robot:
         
     def loop(self, image: np.ndarray, display_frame: bool, max_distance: int = None) -> tuple:
         covered_image = image.copy()
-        covered_image = image_verification.cover_image(covered_image, self.unwanted_boxes)
+        # covered_image = image_verification.cover_image(covered_image, self.unwanted_boxes)
         self.landmarks, modified_image = detect_landmarks.holistic_detect(self.holistic, covered_image)
         modified_image = cv2.flip(modified_image, 1)
         if self.landmarks["pose"] is None:
             return (0, None)
 
         if display_frame:
-            # modified_image = image_verification.verify_by_face(image)
             cv2.imshow(self.name, modified_image)
         return (0, None)
 

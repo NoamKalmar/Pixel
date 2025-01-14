@@ -11,8 +11,33 @@ class MotorsManager:
         pin2_value = 0 if velocity > 0 else 1
         self.arduino.digital[self.pins[index][0]].write(pin1_value)
         self.arduino.digital[self.pins[index][1]].write(pin2_value)
-        self.arduino.digital[self.pins[index][2]].write(abs(velocity) /  255)
+        if len(self.pins[index]) > 2:
+            self.arduino.digital[self.pins[index][2]].write(abs(velocity) /  255)
 
     def turn_all_motors(self, velocity: int):
         for i in range(len(self.pins)):
             self.turn_motor_by_index(i, velocity)
+
+class RobotMotorsManager(MotorsManager):
+    def __init__(
+            self, 
+            arduino: Arduino, 
+            left_motor_pins: tuple,
+            right_motor_pins: tuple,
+            back_motor_pins: tuple, 
+            front_motor_pins: tuple
+        ):
+        pins = [left_motor_pins, right_motor_pins, back_motor_pins, front_motor_pins]
+        super().__init__(arduino, pins)
+
+    def move_straight(self, velocity: int = 255):
+        self.turn_motor_by_index(0, velocity)
+        self.turn_motor_by_index(1, velocity)
+        self.turn_motor_by_index(2, 0)
+        self.turn_motor_by_index(3, 0)
+
+    def move_side(self, velocity: int = 255):
+        self.turn_motor_by_index(0, 0)
+        self.turn_motor_by_index(1, 0)
+        self.turn_motor_by_index(2, velocity)
+        self.turn_motor_by_index(3, velocity)
