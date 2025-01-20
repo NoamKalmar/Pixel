@@ -1,4 +1,5 @@
 import cv2
+import time
 import mediapipe as mp
 from pyfirmata import Arduino
 
@@ -16,13 +17,13 @@ emotion_video_paths = [f"{emotion_videos_foler_path}/happy.mp4",
                        f"{emotion_videos_foler_path}/neutral.mp4"]
 
 BAUDRATE = 115200
-PORT = "COM13"
+PORT = "COM7"
 board = Arduino(PORT)
 HANDS_PINS = [i for i in range(7)]
-LEFT_MOTOR_PINS = (4, 5)
+LEFT_MOTOR_PINS = (8, 9)
 RIGHT_MOTOR_PINS = (6, 7)
-BACK_MOTOR_PINS = (8, 9)
-FRONT_MOTOR_PINS = (10, 11)
+BACK_MOTOR_PINS = (3, 2)
+FRONT_MOTOR_PINS = (4, 5)
 
 mp_holistic = mp.solutions.holistic
 mp_face_mesh = mp.solutions.face_mesh
@@ -47,15 +48,15 @@ def main():
                                                 RIGHT_MOTOR_PINS, 
                                                 BACK_MOTOR_PINS, 
                                                 FRONT_MOTOR_PINS)
-            pixel = Robot(holistic=holistic, face_detection=face_detection, arduino=None, name="Pixel")
+            pixel = Robot(holistic=holistic, face_detection=face_detection, arduino=board, motors_manager=motors_manager, name="Pixel")
 
             while cap.isOpened():
                 key = cv2.waitKey(5)
                 if key == ord("q"):
                     break
                 success, image = cap.read()
-                # motors_manager.turn_all_motors(255)
-                shows.main_show(robot=pixel, frame=image)
+                # shows.main_show(robot=pixel, frame=image)
+                shows.square_show(robot=pixel, frame=image)
             
     cap.release()
 
