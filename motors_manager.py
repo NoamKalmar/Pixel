@@ -18,6 +18,9 @@ class MotorsManager:
         for i in range(len(self.pins)):
             self.turn_motor_by_index(i, velocity)
 
+    def stop_all_motors(self):
+        self.turn_all_motors(0)
+
 class RobotMotorsManager(MotorsManager):
     def __init__(
             self, 
@@ -41,3 +44,9 @@ class RobotMotorsManager(MotorsManager):
         self.turn_motor_by_index(1, 0)
         self.turn_motor_by_index(2, velocity)
         self.turn_motor_by_index(3, velocity)
+
+    def turn(self, velocity: int = 255):
+        self.turn_motor_by_index(0, velocity)
+        self.turn_motor_by_index(1, -velocity)
+        self.turn_motor_by_index(2, -velocity)
+        self.turn_motor_by_index(0, velocity)

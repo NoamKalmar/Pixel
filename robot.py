@@ -42,7 +42,10 @@ class Robot:
         self.angles = [i for i in range(7)]
         self.unwanted_boxes = []
         self.landmarks = {}
-        self.distance_to_human = None
+        self.human_x = None
+        self.human_y = None
+        self.human_z = None
+        self.human_found = False
         
         # default_face_image = face_recognition.load_image_file("face.jpg")
         # self.default_face_encoing = face_recognition.face_encodings(default_face_image)[0]
@@ -53,11 +56,49 @@ class Robot:
         self.landmarks, modified_image = detect_landmarks.holistic_detect(self.holistic, covered_image)
         modified_image = cv2.flip(modified_image, 1)
         if self.landmarks["pose"] is None:
+            self.human_found = False
             return (0, None)
+        self.human_found = True
+
+        self.update_human_location()
 
         if display_frame:
             cv2.imshow(self.name, modified_image)
         return (0, None)
+    
+    def update_human_location(self):
+        self.human_x = self.landmarks["pose"][0].x
+        self.human_y = self.landmarks["pose"][0].y
+        self.human_z = self.landmarks["pose"][0].z
+
+    def move_human_side(self, max_right: float = 0.3, max_left: float = 0.7, velocity: int = 255):
+        if self.human_x > max_right:
+            self.motors_manager.move_side(velocity)
+        elif self.human_x < max_left:
+            self.motors_manager.move_side(-velocity)
+        else:
+            return 1
+        return 0
+
+    def move_human_z(self, too_close: float = -1, too_far: float = -0.5, velocity: int = 255):
+        if self.human_z > too_far:
+            self.motors_manager.move_straight(velocity)
+        elif self.human_z < too_close:
+            self.motors_manager.move_straight(-velocity)
+        else:
+            return 1
+        return 0
+    
+    def follow_human(self):
+        if not self.human_found:
+            self.motors_manager.turn(255)
+            # self.motors_manager.stop_all_motors()
+            return
+        finished_z = self.move_human_z()
+        if finished_z:
+            finished_x = self.move_human_side()
+            if finished_x:
+                self.motors_manager.stop_all_motors()
 
     # def verify_face(self, image):
     #     img = image.copy()

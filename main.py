@@ -56,7 +56,7 @@ def main():
                     break
                 success, image = cap.read()
                 # shows.main_show(robot=pixel, frame=image)
-                shows.square_show(robot=pixel, frame=image)
+                shows.human_side_show(pixel, image)
             
     cap.release()
 
