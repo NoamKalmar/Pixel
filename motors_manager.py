@@ -49,4 +49,4 @@ class RobotMotorsManager(MotorsManager):
         self.turn_motor_by_index(0, velocity)
         self.turn_motor_by_index(1, -velocity)
         self.turn_motor_by_index(2, -velocity)
-        self.turn_motor_by_index(0, velocity)
+        self.turn_motor_by_index(3, velocity)

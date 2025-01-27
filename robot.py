@@ -55,6 +55,9 @@ class Robot:
         # covered_image = image_verification.cover_image(covered_image, self.unwanted_boxes)
         self.landmarks, modified_image = detect_landmarks.holistic_detect(self.holistic, covered_image)
         modified_image = cv2.flip(modified_image, 1)
+        if display_frame:
+            cv2.imshow(self.name, modified_image)
+            
         if self.landmarks["pose"] is None:
             self.human_found = False
             return (0, None)
@@ -62,8 +65,6 @@ class Robot:
 
         self.update_human_location()
 
-        if display_frame:
-            cv2.imshow(self.name, modified_image)
         return (0, None)
     
     def update_human_location(self):
@@ -91,14 +92,11 @@ class Robot:
     
     def follow_human(self):
         if not self.human_found:
-            self.motors_manager.turn(255)
-            # self.motors_manager.stop_all_motors()
+            self.motors_manager.turn(150)
             return
         finished_z = self.move_human_z()
         if finished_z:
-            finished_x = self.move_human_side()
-            if finished_x:
-                self.motors_manager.stop_all_motors()
+            self.motors_manager.stop_all_motors()
 
     # def verify_face(self, image):
     #     img = image.copy()
