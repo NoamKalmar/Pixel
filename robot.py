@@ -73,9 +73,9 @@ class Robot:
         self.human_z = self.landmarks["pose"][0].z
 
     def move_human_side(self, max_right: float = 0.3, max_left: float = 0.7, velocity: int = 255):
-        if self.human_x > max_right:
+        if self.human_x > max_left:
             self.motors_manager.move_side(velocity)
-        elif self.human_x < max_left:
+        elif self.human_x < max_right:
             self.motors_manager.move_side(-velocity)
         else:
             return 1
@@ -94,7 +94,7 @@ class Robot:
         if not self.human_found:
             self.motors_manager.turn(150)
             return
-        finished_z = self.move_human_z()
+        finished_z = self.move_human_side()
         if finished_z:
             self.motors_manager.stop_all_motors()
 

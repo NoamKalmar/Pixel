@@ -17,7 +17,7 @@ emotion_video_paths = [f"{emotion_videos_foler_path}/happy.mp4",
                        f"{emotion_videos_foler_path}/neutral.mp4"]
 
 BAUDRATE = 115200
-PORT = "COM7"
+PORT = "COM14"
 board = Arduino(PORT)
 HANDS_PINS = [i for i in range(7)]
 LEFT_MOTOR_PINS = (8, 9)
@@ -38,32 +38,25 @@ def read_emotion_videos(paths: list) -> list:
 
 
 def main():
-    print(1)
     videos = read_emotion_videos(emotion_video_paths)
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
-        print(2)
         with mp_face_detection.FaceDetection(model_selection=0, min_detection_confidence=0.5) as face_detection:
-            print(3)
             # hands_manager = ServosManager(board, hand_pins, 0)
             motors_manager = RobotMotorsManager(board, 
                                                 LEFT_MOTOR_PINS, 
                                                 RIGHT_MOTOR_PINS, 
                                                 BACK_MOTOR_PINS, 
                                                 FRONT_MOTOR_PINS)
-            print(4)
             pixel = Robot(holistic=holistic, face_detection=face_detection, arduino=board, motors_manager=motors_manager, name="Pixel")
-            print(5)
             
             while cap.isOpened():
-                print(6)
                 key = cv2.waitKey(5)
                 if key == ord("q"):
                     break
                 success, image = cap.read()
                 # shows.main_show(robot=pixel, frame=image)
                 pixel.loop(image, True)
-                # pixel.motors_manager.turn(255)
                 shows.test(pixel)
             
     cap.release()
