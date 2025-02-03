@@ -17,4 +17,4 @@ def square_show(robot: Robot) -> None:
     sleep(1)
 
 def test(robot: Robot):
-    robot.follow_human()
+    robot.motors_manager.turn_all_motors(150)

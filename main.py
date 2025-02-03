@@ -17,13 +17,13 @@ emotion_video_paths = [f"{emotion_videos_foler_path}/happy.mp4",
                        f"{emotion_videos_foler_path}/neutral.mp4"]
 
 BAUDRATE = 115200
-PORT = "COM14"
+PORT = "COM7"
 board = Arduino(PORT)
 HANDS_PINS = [i for i in range(7)]
 LEFT_MOTOR_PINS = (8, 9)
 RIGHT_MOTOR_PINS = (6, 7)
 BACK_MOTOR_PINS = (3, 2)
-FRONT_MOTOR_PINS = (4, 5)
+FRONT_MOTOR_PINS = (2, 3, 5)
 
 mp_holistic = mp.solutions.holistic
 mp_face_mesh = mp.solutions.face_mesh

@@ -72,21 +72,25 @@ class Robot:
         self.human_y = self.landmarks["pose"][0].y
         self.human_z = self.landmarks["pose"][0].z
 
-    def move_human_side(self, max_right: float = 0.3, max_left: float = 0.7, velocity: int = 255):
+    def move_human_side(self, stop=False, max_right: float = 0.3, max_left: float = 0.7, velocity: int = 255):
         if self.human_x > max_left:
             self.motors_manager.move_side(velocity)
         elif self.human_x < max_right:
             self.motors_manager.move_side(-velocity)
         else:
+            if stop:
+                self.motors_manager.stop_all_motors()
             return 1
         return 0
 
-    def move_human_z(self, too_close: float = -1, too_far: float = -0.5, velocity: int = 255):
+    def move_human_z(self, stop=False, too_close: float = -1, too_far: float = -0.5, velocity: int = 255):
         if self.human_z > too_far:
             self.motors_manager.move_straight(velocity)
         elif self.human_z < too_close:
             self.motors_manager.move_straight(-velocity)
         else:
+            if stop:
+                self.motors_manager.stop_all_motors()
             return 1
         return 0
     

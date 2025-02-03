@@ -1,9 +1,15 @@
-from pyfirmata import Arduino
+from pyfirmata import Arduino, PWM
 
 class MotorsManager:
     def __init__(self, arduino: Arduino, pins: list):
         self.arduino = arduino
         self.pins = pins
+        self.init_motors()
+
+    def init_motors(self):
+        for pins in self.pins:
+            if len(pins) > 2:
+                self.arduino.digital[pins[2]].mode = PWM
 
     def turn_motor_by_index(self, index: int, velocity: int = 255):
         velocity = max(min(velocity, 255), -255)
