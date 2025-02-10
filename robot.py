@@ -142,7 +142,7 @@ class Robot:
         return modified_image
 
     def calculate_angles(self) -> list:
-        points = pose_landmarks.get_points([11, 13, 15, 12, 14, 16])
+        points = pose_landmarks.get_points(self.landmarks["pose"], [11, 13, 15, 12, 14, 16])
         a1 = points[0]
         b1 = points[1]
         c1 = points[2]

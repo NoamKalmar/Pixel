@@ -17,7 +17,7 @@ emotion_video_paths = [f"{emotion_videos_foler_path}/happy.mp4",
                        f"{emotion_videos_foler_path}/neutral.mp4"]
 
 BAUDRATE = 115200
-PORT = "COM7"
+PORT = "COM4"
 board = Arduino(PORT)
 HANDS_PINS = [i for i in range(7)]
 LEFT_MOTOR_PINS = (8, 9)

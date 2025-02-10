@@ -4,9 +4,9 @@ import math
 def get_points(landmarks: list, landmarks_numbers: list) -> list:
         points = []
         for landmark_number in landmarks_numbers:
-            point = {"x": landmarks["pose"][landmark_number].x, 
-                     "y": landmarks["pose"][landmark_number].y, 
-                     "z": landmarks["pose"][landmark_number].z}
+            point = {"x": landmarks[landmark_number].x, 
+                     "y": landmarks[landmark_number].y, 
+                     "z": landmarks[landmark_number].z}
             points.append(point)
         return points
 

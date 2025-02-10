@@ -18,3 +18,6 @@ def square_show(robot: Robot) -> None:
 
 def test(robot: Robot):
     robot.motors_manager.turn_all_motors(150)
+    if robot.landmarks:
+        angles = robot.calculate_angles()
+        print(angles)
