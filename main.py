@@ -16,6 +16,9 @@ emotion_video_paths = [f"{emotion_videos_foler_path}/happy.mp4",
                        f"{emotion_videos_foler_path}/sad.mp4", 
                        f"{emotion_videos_foler_path}/neutral.mp4"]
 
+PORT = "1989"
+SERVER_ADDRESS = ("127.0.0.1", PORT)
+
 BAUDRATE = 115200
 PORT = "COM4"
 board = Arduino(PORT)
