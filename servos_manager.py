@@ -1,6 +1,6 @@
 from pyfirmata import Arduino, SERVO
 
-class ServosManager():
+class ServosManager:
     def __init__(self, arduino: Arduino, pins: list, start_value: int = 0, default_values: dict = None):
         self.pins = pins
         self.arduino = arduino
@@ -11,7 +11,7 @@ class ServosManager():
     def init_servos(self) -> None:
         for pin in self.pins:
             self.arduino.digital[pin].mode = SERVO
-            self.arduino.digital[pin].write(self.default_value)
+            self.arduino.digital[pin].write(self.start_value)
     
     def write_all(self, values: list) -> None:
         for i, pin in enumerate(self.pins):
@@ -19,15 +19,8 @@ class ServosManager():
                 continue
             self.arduino.digital[pin].write(values[i])
     
-    def write_by_pin(self, pin, value: int) -> None:
-        self.arduino.digital[pin].write(value)
-
-    def write_by_pins(self, pins_values: dict) -> None:
-        for pin in pins_values:
-            if not pin in self.pins:
-                print(f"{pin} is not in this Servos Manger's initalized pins")
-                return -1
-            self.arduino.digital[pin] = pins_values[pin]
+    def write_by_index(self, index: int, value: int) -> None:
+        self.arduino.digital[self.pins[index]].write(value)
 
     def write_default_values(self) -> None:
         self.write_all(self.default_values)

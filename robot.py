@@ -39,7 +39,7 @@ class Robot:
         self.hands_manager = hands_manager
         self.motors_manager = motors_manager
         self.head_angle = 90
-        self.angles = [i for i in range(7)]
+        self.angles = [[] for i in range(7)]
         self.unwanted_boxes = []
         self.landmarks = {}
         self.human_x = None
@@ -193,4 +193,5 @@ class Robot:
             self.angles[i].append(angle)
             self.angles[i] = self.angles[i][-average_of:]
             average_angle = sum(self.angles[i]) / len(self.angles[i])
-            self.hands_manager.write_by_pin(i, average_angle)
+            print(average_angle)
+            self.hands_manager.write_by_index(i, round(average_angle))
