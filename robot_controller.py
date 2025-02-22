@@ -66,6 +66,7 @@ class RobotController:
                 return
 
             protocol_data = server_protocol.get_command(data)
+            print(protocol_data)
             if protocol_data == None:
                 self.commands = []
                 continue
@@ -85,6 +86,7 @@ class RobotController:
             
             if not isinstance(protocol_data, Command):
                 continue
+
             self.commands.append(protocol_data)
 
     def server_loop(self):

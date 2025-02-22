@@ -14,7 +14,7 @@ MOVE_BACKWARDS_COMMAND = "motors_manager.move_straight(-255)"
 class ControllerApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.geometry("600x100")
+        self.geometry("600x200")
         self.title(DEFAULT_TITLE)
 
         self.is_current_triggred = tk.BooleanVar()
@@ -30,6 +30,7 @@ class ControllerApp(tk.Tk):
         self.table_frame = tk.Frame(self)
 
         self.commands = defaultdict(str) # {id: command_str}
+        self.untriggred_data_label = None
         self.last_untriggred_id = None
         self.client = None
     
@@ -56,6 +57,13 @@ class ControllerApp(tk.Tk):
 
         self.eval_button = tk.Button(self.control_frame, text="Evaluate!", command=self.add_command)
         self.eval_button.grid(pady=10)
+
+        self.remove_all_button = tk.Button(
+            self.control_frame, 
+            text="Remove all commands", 
+            command=self.remove_all
+        )
+        self.remove_all_button.grid(pady=10)
 
         self.left_button = tk.Button(
             self.control_frame, 
@@ -88,7 +96,7 @@ class ControllerApp(tk.Tk):
 
     def update_data_table(self):
         for widget in self.table_frame.winfo_children():
-            if widget == self.untriggred_data_label:
+            if self.untriggred_data_label and widget == self.untriggred_data_label:
                 continue
             widget.destroy()
         
@@ -107,7 +115,7 @@ class ControllerApp(tk.Tk):
             remove_button = tk.Button(
                 self.table_frame, 
                 text="X", 
-                command=lambda: self.client.remove_command(command_id)
+                command=lambda command_id=int(command_id): self.remove_command(command_id)
             )
             remove_button.grid(row=row + 1, column=0)
 
@@ -115,7 +123,7 @@ class ControllerApp(tk.Tk):
             command_label.grid(row=row + 1, column=1)
 
             value_label = tk.Label(self.table_frame, text=value)
-            value_label.grid(row=row + 1, column=2)
+            value_label.grid(row=row + 1, column=2, padx=20)
         
         self.after(100, self.update_data_table)
 
@@ -131,7 +139,10 @@ class ControllerApp(tk.Tk):
             self.last_untriggred_id = command_id
 
     def remove_command(self, command_id: int):
-        self.client.remvoe_command(command_id)
+        self.client.remove_command(command_id)
+    
+    def remove_all(self):
+        self.client.remove_all_commands()
 
     def connect(self):
         try:
@@ -147,7 +158,6 @@ class ControllerApp(tk.Tk):
             messagebox.showerror("Error", "Error while trying to connect to the robot")
             return
         self.ip_frame.pack_forget()
-        self.geometry("600x600")
         self.title("Connected")
         self.control_frame.pack()
         self.table_frame.pack(pady=20)

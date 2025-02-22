@@ -22,7 +22,7 @@ class Client(threading.Thread):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as self.socket:
             try:
                 self.socket.connect((self.ip, self.port))
-                self.socket.sendall(client_protocol.remove_all_commands())
+                self.remove_all_commands()
             except:
                 self.connection_error = True
             
@@ -33,7 +33,6 @@ class Client(threading.Thread):
                 data = self.socket.recv(1024)
                 if data:
                     self.commands_data = client_protocol.get_commands_data(data)
-                    print(self.commands_data)
 
     def send_command(self, command: str, is_toggled: bool):
         message = client_protocol.send_command(self.current_command_id, command, is_toggled)
@@ -43,4 +42,8 @@ class Client(threading.Thread):
     
     def remove_command(self, command_id: int):
         message = client_protocol.send_remove_command(command_id)
+        self.socket.sendall(message)
+    
+    def remove_all_commands(self):
+        message = client_protocol.remove_all_commands()
         self.socket.sendall(message)
