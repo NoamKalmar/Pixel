@@ -3,13 +3,10 @@ import threading
 import socket
 import cv2
 from robot import Robot
-
-@dataclass
-class Command:
-    command: str
-    is_toggeled: bool
-    command_id: int
-    return_value: str = ""
+from command import Command
+import server_protocol
+import time
+import numpy as np
 
 class RobotController:
     def __init__(self, robot: Robot, cap: cv2.VideoCapture, server_address: tuple):
@@ -17,9 +14,13 @@ class RobotController:
         self.cap = cap
         self.server_address = server_address
         self.running = True
+        self.client_connected = False
         self.commands = []
-        self.robot_thread = threading.Thread(target=self.robot_loop, daemon=True)
-        self.server_thread = threading.Thread()
+        self.server_thread = threading.Thread(target=self.server_loop, daemon=True)
+
+    def start(self):
+        self.server_thread.start()
+        self.robot_loop()
 
     def robot_loop(self):
         while self.cap.isOpened():
@@ -29,29 +30,73 @@ class RobotController:
             success, image = self.cap.read()
             self.robot.loop(image, True)
             self.exec_commands()
-        running = False
+        self.running = False
+        self.cap.release()
 
     def exec_commands(self):
         for command in self.commands:
-            value = eval(command)
+            if not command.is_toggled and command.evaluated:
+                continue
+            try:
+                value = eval(command.command)
+            except:
+                value = "Error"
+
+            command.evaluated = True
             command.return_value = value
-            if not command.is_toggeled:
-                self.commands.remove(command)
+
+            # print(command.return_value)
 
     def send_live_data(self, conn: socket.socket):
-        pass
+        while self.running and self.client_connected:
+            message = server_protocol.send_data(self.commands)
+            conn.sendall(message)
+            for command in self.commands:
+                if not command.is_toggled and command.evaluated:
+                    self.commands.remove(command)
+
+            time.sleep(0.1)
 
     def handle_client(self, conn: socket.socket):
-        pass
+        while self.running:
+            data = conn.recv(1024)
+            if not data:
+                print("Client disconnected")
+                self.client_connected = False
+                return
 
-    def start_server(self):
+            protocol_data = server_protocol.get_command(data)
+            if protocol_data == None:
+                self.commands = []
+                continue
+
+            in_commands = False
+            for command in self.commands:
+                if isinstance(protocol_data, int):
+                    if command.command_id == protocol_data:
+                        self.commands.remove(command)
+                        in_commands = True
+                elif protocol_data.command == command.command:
+                    in_commands = True
+                    break
+                
+            if in_commands:
+                continue
+            
+            if not isinstance(protocol_data, Command):
+                continue
+            self.commands.append(protocol_data)
+
+    def server_loop(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
             server_socket.bind(self.server_address)
             server_socket.listen(1)
-            conn, addr = server_socket.accept()
-            print(f"Connected by {addr}")
-
-            with conn:
-                while self.running:
-                    self.send_live_data()
-                    self.handle_client()
+            while self.running:
+                conn, addr = server_socket.accept()
+                self.client_connected = True
+                print(f"Connected by {addr}")
+                self.commands = []
+                with conn:
+                    self.send_data_thread = threading.Thread(target=self.send_live_data, args=(conn,), daemon=True)
+                    self.send_data_thread.start()
+                    self.handle_client(conn)
