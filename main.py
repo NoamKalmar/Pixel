@@ -22,7 +22,7 @@ SERVER_ADDRESS = ("127.0.0.1", PORT)
 
 BAUDRATE = 115200
 PORT = "COM6"
-# board = Arduino(PORT)
+board = Arduino(PORT)
 HANDS_PINS = [i for i in range(2, 9)]
 LEFT_MOTOR_PINS = (1, 11, 9)
 RIGHT_MOTOR_PINS = (7, 8, 6)
@@ -46,7 +46,7 @@ def main():
     cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
         with mp_face_detection.FaceDetection(model_selection=0, min_detection_confidence=0.5) as face_detection:
-            # hands_manager = ServosManager(board, HANDS_PINS, 90)
+            hands_manager = ServosManager(board, HANDS_PINS, 90)
             # motors_manager = RobotMotorsManager(board, 
             #                                     LEFT_MOTOR_PINS, 
             #                                     RIGHT_MOTOR_PINS, 
@@ -55,8 +55,8 @@ def main():
             pixel = Robot(
                 holistic=holistic, 
                 face_detection=face_detection, 
-                arduino=None, motors_manager=None, 
-                hands_manager=None, 
+                arduino=Arduino, motors_manager=None, 
+                hands_manager=hands_manager, 
                 name="Pixel"
             )
             

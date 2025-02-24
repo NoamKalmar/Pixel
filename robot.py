@@ -161,20 +161,20 @@ class Robot:
         angle1 = 180 - pose_landmarks.vectors_angle([a1, b1, e1])
         angle1 = (angle1 - 60) * 3
         angle2 = 180 - pose_landmarks.vectors_angle([a1, b1, d1])
-        if angle2 > 120:
-            angle2 = angle2 + ((angle2 - 120) * 3)
-        angle3 = 180 - pose_landmarks.vectors_angle([b1, a1, c1]) + 30
+        # if angle2 > 120:
+        #     angle2 = angle2 + ((angle2 - 120) * 3)
+        angle3 = 180 - pose_landmarks.vectors_angle([b1, a1, c1])
 
         angle4 = pose_landmarks.vectors_angle([a2, b2, e2])
         angle4 = (angle4 - 60) * 3
-        angle4 -= 70
-        angle5 = pose_landmarks.vectors_angle([a2, b2, d2])
-        if angle5 < 70:
-            angle5 = angle5 - ((70 - angle5) * 3)
-        angle6 = 180 - pose_landmarks.vectors_angle([b2, a2, c2])
-        angle6 -= 45
-        angle6 * 90 / 80
-        angle6 = 90 - angle6
+        # angle4 -= 70
+        angle5 = 180 - pose_landmarks.vectors_angle([a2, b2, d2])
+        # if angle5 < 70:
+        #     angle5 = angle5 - ((70 - angle5) * 3)
+        angle6 = pose_landmarks.vectors_angle([b2, a2, c2])
+        # angle6 -= 45
+        # angle6 * 90 / 80
+        # angle6 = 90 - angle6
 
         if self.landmarks["pose"][0].x < 0.3:
             self.head_angle += 1
@@ -184,6 +184,8 @@ class Robot:
         return [angle1, angle2, angle3, angle4, angle5, angle6, self.head_angle]
 
     def mimic_movements(self, average_of: int=10) -> None:
+        if not self.landmarks["pose"]:
+            return
         angles = self.calculate_angles()
         for i, angle in enumerate(angles):
             if angle < 1:
@@ -193,5 +195,4 @@ class Robot:
             self.angles[i].append(angle)
             self.angles[i] = self.angles[i][-average_of:]
             average_angle = sum(self.angles[i]) / len(self.angles[i])
-            print(average_angle)
             self.hands_manager.write_by_index(i, round(average_angle))
