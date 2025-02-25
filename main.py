@@ -21,13 +21,13 @@ PORT = 1989
 SERVER_ADDRESS = ("127.0.0.1", PORT)
 
 BAUDRATE = 115200
-PORT = "COM6"
+PORT = "COM7"
 board = Arduino(PORT)
 HANDS_PINS = [i for i in range(2, 9)]
-LEFT_MOTOR_PINS = (1, 11, 9)
+LEFT_MOTOR_PINS = (2, 11, 9)
 RIGHT_MOTOR_PINS = (7, 8, 6)
 BACK_MOTOR_PINS = (4, 5, 3)
-FRONT_MOTOR_PINS = (2, 13, 10)
+FRONT_MOTOR_PINS = (12, 13, 10)
 
 mp_holistic = mp.solutions.holistic
 mp_face_mesh = mp.solutions.face_mesh
@@ -47,15 +47,16 @@ def main():
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
         with mp_face_detection.FaceDetection(model_selection=0, min_detection_confidence=0.5) as face_detection:
             hands_manager = ServosManager(board, HANDS_PINS, 90)
-            # motors_manager = RobotMotorsManager(board, 
-            #                                     LEFT_MOTOR_PINS, 
-            #                                     RIGHT_MOTOR_PINS, 
-            #                                     BACK_MOTOR_PINS, 
-            #                                     FRONT_MOTOR_PINS)
+            motors_manager = RobotMotorsManager(board, 
+                                                LEFT_MOTOR_PINS, 
+                                                RIGHT_MOTOR_PINS, 
+                                                BACK_MOTOR_PINS, 
+                                                FRONT_MOTOR_PINS)
             pixel = Robot(
                 holistic=holistic, 
                 face_detection=face_detection, 
-                arduino=Arduino, motors_manager=None, 
+                arduino=board, 
+                motors_manager=motors_manager, 
                 hands_manager=hands_manager, 
                 name="Pixel"
             )

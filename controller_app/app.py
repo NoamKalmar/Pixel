@@ -10,6 +10,9 @@ MOVE_LEFT_COMMAND = "motors_manager.move_side(-255)"
 MOVE_RIGHT_COMMAND = "motors_manager.move_side(255)"
 MOVE_FORWARDS_COMMAND = "motors_manager.move_straight(255)"
 MOVE_BACKWARDS_COMMAND = "motors_manager.move_straight(-255)"
+STOP_MOVING_COMMAND = "motors_manager.stop_moving()"
+
+LOCALHOST_SERVER_ADDRESS = "127.0.0.1:1989"
 
 class ControllerApp(tk.Tk):
     def __init__(self):
@@ -41,8 +44,16 @@ class ControllerApp(tk.Tk):
         self.ip_entry.pack()
         self.connect_button = tk.Button(self.ip_frame, text="Connect!", command=self.connect)
         self.connect_button.pack(pady=10)
+        self.localhost_button = tk.Button(
+            self.ip_frame, 
+            text="Connect to localhost", 
+            command=lambda: self.connect(LOCALHOST_SERVER_ADDRESS)
+        )
+        self.localhost_button.pack()
 
     def add_control_frame(self):
+        self.disconnect_button = tk.Button(self, text="Disconnect", command=self.disconnect)
+        self.disconnect_button.place(x=10, y=10, anchor="nw")
         self.command_label = tk.Label(self.control_frame, text="Enter command")
         self.command_label.grid(row=0, column=0)
 
@@ -93,8 +104,17 @@ class ControllerApp(tk.Tk):
         )
         self.backward_button.grid(row=2, column=3)
 
+        self.stop_button = tk.Button(
+            self.control_frame, 
+            text="Stop",
+            command=lambda: self.add_command(STOP_MOVING_COMMAND, False)
+        )
+        self.stop_button.grid(row=1, column=3, pady=10)
+
 
     def update_data_table(self):
+        if not self.client:
+            return
         for widget in self.table_frame.winfo_children():
             if self.untriggred_data_label and widget == self.untriggred_data_label:
                 continue
@@ -144,11 +164,13 @@ class ControllerApp(tk.Tk):
     def remove_all(self):
         self.client.remove_all_commands()
 
-    def connect(self):
+    def connect(self, address_str: str = None):
         try:
-            address = self.ip_entry.get().split(":")
-            address[1] = int(address[1])
-            self.client = Client(address[0], address[1])
+            if not address_str:
+                address_str = self.ip_entry.get()
+            address, port = address_str.split(":")
+            port = int(port)
+            self.client = Client(address, port)
             self.client.start()
             time.sleep(3)
             if self.client.connection_error:
@@ -162,6 +184,15 @@ class ControllerApp(tk.Tk):
         self.control_frame.pack()
         self.table_frame.pack(pady=20)
         self.update_data_table()
+
+    def disconnect(self):
+        if self.client:
+            self.client.running = False
+            self.client.join()
+            self.client = None
+        self.control_frame.pack_forget()
+        self.table_frame.pack_forget()
+        self.ip_frame.pack()
 
     def on_closing(self):
         if self.client:

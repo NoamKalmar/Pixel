@@ -7,7 +7,7 @@ def remove_all_commands():
 
 # id;*(if toggled)command
 def send_command(command_id: int, command: str, is_toggled: bool): 
-    message = f"{command_id};{"*" if is_toggled else ""}{command}"
+    message = f"{command_id};{'*' if is_toggled else ''}{command}"
     return bytes(message, "utf-8")
 
 # id;-
