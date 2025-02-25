@@ -33,7 +33,6 @@ class Client(threading.Thread):
                 data = self.socket.recv(1024)
                 if data:
                     self.commands_data = client_protocol.get_commands_data(data)
-                    print(data)
 
     def send_command(self, command: str, is_toggled: bool):
         message = client_protocol.send_command(self.current_command_id, command, is_toggled)
