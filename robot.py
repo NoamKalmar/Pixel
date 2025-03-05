@@ -196,3 +196,4 @@ class Robot:
             self.angles[i] = self.angles[i][-average_of:]
             average_angle = sum(self.angles[i]) / len(self.angles[i])
             self.hands_manager.write_by_index(i, round(average_angle))
+            # print(i, average_angle)

@@ -24,10 +24,10 @@ BAUDRATE = 115200
 PORT = "COM7"
 board = Arduino(PORT)
 HANDS_PINS = [i for i in range(2, 9)]
-LEFT_MOTOR_PINS = (2, 11, 9)
-RIGHT_MOTOR_PINS = (7, 8, 6)
-BACK_MOTOR_PINS = (4, 5, 3)
-FRONT_MOTOR_PINS = (12, 13, 10)
+LEFT_MOTOR_PINS = (2, 3)
+RIGHT_MOTOR_PINS = (6, 7)
+BACK_MOTOR_PINS = (8, 9)
+FRONT_MOTOR_PINS = (4, 5)
 
 mp_holistic = mp.solutions.holistic
 mp_face_mesh = mp.solutions.face_mesh

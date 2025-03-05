@@ -1,4 +1,4 @@
-from pyfirmata import Arduino, PWM
+from pyfirmata import Arduino, PWM, OUTPUT
 
 class MotorsManager:
     def __init__(self, arduino: Arduino, pins: list):
@@ -8,6 +8,8 @@ class MotorsManager:
 
     def init_motors(self):
         for pins in self.pins:
+            self.arduino.digital[pins[0]].mode = OUTPUT
+            self.arduino.digital[pins[1]].mode = OUTPUT
             if len(pins) > 2:
                 self.arduino.digital[pins[2]].mode = PWM
 
@@ -19,9 +21,6 @@ class MotorsManager:
         self.arduino.digital[self.pins[index][1]].write(pin2_value)
         if len(self.pins[index]) > 2:
             self.arduino.digital[self.pins[index][2]].write(abs(velocity) /  255)
-        print(f"pin1: {self.pins[index][0]}, {pin1_value}")
-        print(f"pin2: {self.pins[index][1]}, {pin2_value}")
-        print(f"pwm: {self.pins[index][2]}, {abs(velocity) /  255}")
 
     def turn_all_motors(self, velocity: int):
         for i in range(len(self.pins)):
@@ -43,17 +42,17 @@ class RobotMotorsManager(MotorsManager):
         super().__init__(arduino, pins)
 
     def move_straight(self, velocity: int = 255):
-        self.turn_motor_by_index(0, 0)
-        self.turn_motor_by_index(1, 0)
-        self.turn_motor_by_index(2, velocity)
-        self.turn_motor_by_index(3, velocity)
-
-    def move_side(self, velocity: int = 255):
         self.turn_motor_by_index(0, velocity)
         self.turn_motor_by_index(1, velocity)
         self.turn_motor_by_index(2, 0)
         self.turn_motor_by_index(3, 0)
 
+    def move_side(self, velocity: int = 255):
+        self.turn_motor_by_index(0, 0)
+        self.turn_motor_by_index(1, 0)
+        self.turn_motor_by_index(2, velocity)
+        self.turn_motor_by_index(3, velocity)
+        
     def stop_moving(self):
         self.turn_motor_by_index(0, 0)
         self.turn_motor_by_index(1, 0)
