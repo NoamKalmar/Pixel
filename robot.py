@@ -96,10 +96,12 @@ class Robot:
     
     def follow_human(self):
         finished_x = self.move_human_x()
-        # if finished_x:
-            # finished_z = self.move_human_z()
-        if finished_x:
-            self.motors_manager.stop_all_motors()
+        if not finished_x:
+            return
+        finished_z = self.move_human_z()
+        if not finished_z:
+            return
+        self.motors_manager.stop_all_motors()
 
     # def verify_face(self, image):
     #     img = image.copy()
