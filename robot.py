@@ -20,18 +20,15 @@ from servos_manager import ServosManager
 from motors_manager import RobotMotorsManager
 import pose_landmarks
 
-BLACK = (0, 0, 0)
-
 class Robot:
     def __init__(
-            self, holistic, face_detection,
+            self, holistic,
             arduino: Arduino=None,
             hands_manager: ServosManager=None,
             motors_manager: RobotMotorsManager=None,
             name="Robot"
     ):
         self.holistic = holistic
-        self.face_detection = face_detection
         self.name = name
         self.arduino = arduino
         self.hands_manager = hands_manager

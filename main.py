@@ -45,24 +45,22 @@ def main():
     videos = read_emotion_videos(emotion_video_paths)
     cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
-        with mp_face_detection.FaceDetection(model_selection=0, min_detection_confidence=0.5) as face_detection:
-            hands_manager = ServosManager(board, HANDS_PINS, 90)
-            motors_manager = RobotMotorsManager(board, 
-                                                LEFT_MOTOR_PINS, 
-                                                RIGHT_MOTOR_PINS, 
-                                                BACK_MOTOR_PINS, 
-                                                FRONT_MOTOR_PINS)
-            pixel = Robot(
-                holistic=holistic, 
-                face_detection=face_detection, 
-                arduino=board, 
-                motors_manager=motors_manager, 
-                hands_manager=hands_manager, 
-                name="Pixel"
-            )
-            
-            controller = RobotController(pixel, cap, SERVER_ADDRESS)
-            controller.start()   
+        hands_manager = ServosManager(board, HANDS_PINS, 90)
+        motors_manager = RobotMotorsManager(board, 
+                                            LEFT_MOTOR_PINS, 
+                                            RIGHT_MOTOR_PINS, 
+                                            BACK_MOTOR_PINS, 
+                                            FRONT_MOTOR_PINS)
+        pixel = Robot(
+            holistic=holistic, 
+            arduino=board, 
+            motors_manager=motors_manager, 
+            hands_manager=hands_manager, 
+            name="Pixel"
+        )
+        
+        controller = RobotController(pixel, cap, SERVER_ADDRESS)
+        controller.start()   
             
     cap.release()
 
