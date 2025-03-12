@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 from PIL import Image
 import mediapipe as mp
-# import face_recognition
 import pandas as pd
 from pyfirmata import Arduino, SERVO
 import math
@@ -20,7 +19,6 @@ import detect_landmarks
 from servos_manager import ServosManager
 from motors_manager import RobotMotorsManager
 import pose_landmarks
-import image_verification
 
 BLACK = (0, 0, 0)
 
@@ -47,12 +45,8 @@ class Robot:
         self.human_z = None
         self.human_found = False
         
-        # default_face_image = face_recognition.load_image_file("face.jpg")
-        # self.default_face_encoing = face_recognition.face_encodings(default_face_image)[0]
-        
     def loop(self, image: np.ndarray, display_frame: bool, max_distance: int = None) -> tuple:
         covered_image = image.copy()
-        # covered_image = image_verification.cover_image(covered_image, self.unwanted_boxes)
         self.landmarks, modified_image = detect_landmarks.holistic_detect(self.holistic, covered_image)
         modified_image = cv2.flip(modified_image, 1)
         if display_frame:
@@ -102,28 +96,8 @@ class Robot:
         if not finished_z:
             return
         self.motors_manager.stop_all_motors()
-
-    # def verify_face(self, image):
-    #     img = image.copy()
-    #     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    #     im_pil = Image.fromarray(img)
-    #     im_np = np.asarray(im_pil)
-    #     img_encoding = face_recognition.face_encodings(im_np)
-    #     results = face_recognition.compare_faces([self.default_face_encoing], img_encoding)
-    #     face_indexes = [i for i, value in enumerate(results) if not value]
-    #     face_locations = face_recognition.face_locations(img)
-    #     print(face_locations[0])
-    #     print(face_indexes)
     
     def calculate_distance(self, focal_length: int = 800) -> None:
-        # left_shoulder = self.landmarks["pose"][11]
-        # right_shoulder = self.landmarks["pose"][12]
-        # shoulder_distance = np.sqrt(
-        #     (left_shoulder.x - right_shoulder.x) ** 2 + 
-        #     (left_shoulder.y - right_shoulder.y) ** 2 + 
-        #     (left_shoulder.z - right_shoulder.z) ** 2
-        # )
-        # self.distance_to_human = focal_length / shoulder_distance
         self.distance_to_human = focal_length / -self.landmarks["pose"][0].z
         
     def get_human_box(self, image_shape: tuple):
@@ -162,20 +136,12 @@ class Robot:
         angle1 = 180 - pose_landmarks.vectors_angle([a1, b1, e1])
         angle1 = (angle1 - 60) * 3
         angle2 = 180 - pose_landmarks.vectors_angle([a1, b1, d1])
-        # if angle2 > 120:
-        #     angle2 = angle2 + ((angle2 - 120) * 3)
         angle3 = 180 - pose_landmarks.vectors_angle([b1, a1, c1])
 
         angle4 = pose_landmarks.vectors_angle([a2, b2, e2])
         angle4 = (angle4 - 60) * 3
-        # angle4 -= 70
         angle5 = 180 - pose_landmarks.vectors_angle([a2, b2, d2])
-        # if angle5 < 70:
-        #     angle5 = angle5 - ((70 - angle5) * 3)
         angle6 = pose_landmarks.vectors_angle([b2, a2, c2])
-        # angle6 -= 45
-        # angle6 * 90 / 80
-        # angle6 = 90 - angle6
 
         if self.landmarks["pose"][0].x < 0.3:
             self.head_angle += 1
@@ -197,4 +163,3 @@ class Robot:
             self.angles[i] = self.angles[i][-average_of:]
             average_angle = sum(self.angles[i]) / len(self.angles[i])
             self.hands_manager.write_by_index(i, round(average_angle))
-            # print(i, average_angle)
