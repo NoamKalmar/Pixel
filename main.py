@@ -1,5 +1,6 @@
-import cv2
 import time
+import sys
+import cv2
 import mediapipe as mp
 from pyfirmata import Arduino
 
@@ -22,7 +23,6 @@ SERVER_ADDRESS = ("127.0.0.1", PORT)
 
 BAUDRATE = 115200
 PORT = "COM7"
-# board = Arduino(PORT)
 HANDS_PINS = [i for i in range(2, 9)]
 LEFT_MOTOR_PINS = (2, 3)
 RIGHT_MOTOR_PINS = (6, 7)
@@ -45,19 +45,23 @@ def read_emotion_videos(paths: list) -> list:
 
 def main():
     videos = read_emotion_videos(emotion_video_paths)
+    hands_manager = None
+    motors_manager = None
+    if len(sys.argv) < 2 or sys.argv[1] != "sim":
+        board = Arduino(PORT)
+        hands_manager = ServosManager(board, HANDS_PINS, 90)
+        motors_manager = RobotMotorsManager(board, 
+                                            LEFT_MOTOR_PINS, 
+                                            RIGHT_MOTOR_PINS, 
+                                            BACK_MOTOR_PINS, 
+                                            FRONT_MOTOR_PINS)
+    
     cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
-        # hands_manager = ServosManager(board, HANDS_PINS, 90)
-        # motors_manager = RobotMotorsManager(board, 
-        #                                     LEFT_MOTOR_PINS, 
-        #                                     RIGHT_MOTOR_PINS, 
-        #                                     BACK_MOTOR_PINS, 
-        #                                     FRONT_MOTOR_PINS)
         pixel = Robot(
-            holistic=holistic, 
-            arduino=None, 
-            motors_manager=None, 
-            hands_manager=None, 
+            holistic=holistic,
+            motors_manager=motors_manager, 
+            hands_manager=hands_manager, 
             name="Pixel"
         )
 

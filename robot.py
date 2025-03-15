@@ -1,19 +1,7 @@
 import numpy as np
 import cv2
-from PIL import Image
-import mediapipe as mp
-import pandas as pd
-from pyfirmata import Arduino, SERVO
 import math
 import numpy as np
-import keras
-from langchain_community.llms import Ollama
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-import pyttsx3
-import speech_recognition as sr
-import ollama
-import time
 from collections import defaultdict
 from collections.abc import Callable
 
@@ -24,15 +12,14 @@ import pose_landmarks
 
 class Robot:
     def __init__(
-            self, holistic,
-            arduino: Arduino=None,
+            self, 
+            holistic,
             hands_manager: ServosManager=None,
             motors_manager: RobotMotorsManager=None,
             name="Robot"
     ):
         self.holistic = holistic
         self.name = name
-        self.arduino = arduino
         self.hands_manager = hands_manager
         self.motors_manager = motors_manager
         self.head_angle = 90
