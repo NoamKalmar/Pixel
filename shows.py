@@ -1,10 +1,14 @@
 from robot import Robot
-import numpy as np
 from time import sleep
 
-def main_show(robot: Robot, frame: np.ndarray) -> None:
-    robot.loop(frame, True)
-    # robot.mimic_movements()
+def main_show() -> None:
+    def dance(robot: Robot):
+        print("Dancing")
+        return 1
+    def interaction(robot: Robot):
+        print("Interacting")
+        return 1
+    return [dance, interaction]
 
 def square_show(robot: Robot) -> None:
     robot.motors_manager.move_straight(255)

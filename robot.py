@@ -14,6 +14,8 @@ import pyttsx3
 import speech_recognition as sr
 import ollama
 import time
+from collections import defaultdict
+from collections.abc import Callable
 
 import detect_landmarks
 from servos_manager import ServosManager
@@ -41,6 +43,8 @@ class Robot:
         self.human_y = None
         self.human_z = None
         self.human_found = False
+        self.shows = defaultdict(list) # {name: [show_step0, show_step1, ...]}
+        self.current_show_step = 0
         
     def loop(self, image: np.ndarray, display_frame: bool, max_distance: int = None) -> tuple:
         covered_image = image.copy()
@@ -152,11 +156,22 @@ class Robot:
             return
         angles = self.calculate_angles()
         for i, angle in enumerate(angles):
-            if angle < 1:
-                angle = 1
+            if angle < 0:
+                angle = 0
             elif angle > 180:
                 angle = 180
             self.angles[i].append(angle)
             self.angles[i] = self.angles[i][-average_of:]
             average_angle = sum(self.angles[i]) / len(self.angles[i])
             self.hands_manager.write_by_index(i, round(average_angle))
+
+    def load_shows(self, shows: dict[str, Callable]) -> None:
+        for show_name, show_function in shows.items():
+            show_steps = show_function()
+            self.shows[show_name] = show_steps
+
+    def run_show(self, name: str) -> None:
+        if self.current_show_step == -1:
+            return
+        show_steps = self.shows[name]
+        self.current_show_step = show_steps[self.current_show_step](self)
