@@ -30,8 +30,7 @@ class Robot:
         self.human_y = None
         self.human_z = None
         self.human_found = False
-        self.shows = defaultdict(list) # {name: [show_step0, show_step1, ...]}
-        self.current_show_step = 0
+        self.shows = defaultdict(dict) # {name: {"steps": [show_step0, show_step1, ...], "current_step": current_step}}
         
     def loop(self, image: np.ndarray, display_frame: bool, max_distance: int = None) -> tuple:
         covered_image = image.copy()
@@ -155,10 +154,14 @@ class Robot:
     def load_shows(self, shows: dict[str, Callable]) -> None:
         for show_name, show_function in shows.items():
             show_steps = show_function()
-            self.shows[show_name] = show_steps
+            self.shows[show_name]["steps"] = show_steps
+            self.shows[show_name]["current_step"] = 0
 
     def run_show(self, name: str) -> None:
-        if self.current_show_step == -1:
+        show_steps, current_step = self.shows[name].values()
+        if current_step == -1:
             return
-        show_steps = self.shows[name]
-        self.current_show_step = show_steps[self.current_show_step](self)
+        self.shows[name]["current_step"] = show_steps[current_step](self)
+
+    def reset_show(self, name: str) -> None:
+        self.shows[name]["current_step"] = 0
