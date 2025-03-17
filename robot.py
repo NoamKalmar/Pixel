@@ -163,5 +163,21 @@ class Robot:
             return
         self.shows[name]["current_step"] = show_steps[current_step](self)
 
+    def set_show_step(self, name: str, step: int) -> None:
+        self.shows[name]["current_step"] = step
+        
     def reset_show(self, name: str) -> None:
-        self.shows[name]["current_step"] = 0
+        self.set_show_step(name, 0)
+
+    def reset_shows(self) -> None:
+        for show_name in self.shows.keys():
+            self.set_show_step(show_name, 0)
+
+    def end_show(self, name: str):
+        self.set_show_step(name, -1)
+
+    def next_step(self, name: str):
+        self.set_show_step(name, self.shows[name]["current_step"] + 1)
+
+    def last_step(self, name: str):
+        self.set_show_step(name, self.shows[name]["current_step"] - 1)
