@@ -10,15 +10,19 @@ def main_show() -> None:
         return 1
     return [dance, interaction]
 
-def square_show(robot: Robot) -> None:
-    robot.motors_manager.move_straight(255)
-    sleep(1)
-    robot.motors_manager.move_side(255)
-    sleep(1)
-    robot.motors_manager.move_straight(-255)
-    sleep(1)
-    robot.motors_manager.move_side(-255)
-    sleep(1)
+def square_show() -> None:
+    def square(robot: Robot):
+        robot.motors_manager.move_straight(255)
+        sleep(1)
+        robot.motors_manager.move_side(255)
+        sleep(1)
+        robot.motors_manager.move_straight(-255)
+        sleep(1)
+        robot.motors_manager.move_side(-255)
+        sleep(1)
+        robot.motors_manager.stop_moving()
+        return -1
+    return [square]
 
 def test(robot: Robot):
     robot.motors_manager.turn_all_motors(150)

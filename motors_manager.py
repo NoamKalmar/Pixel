@@ -54,10 +54,7 @@ class RobotMotorsManager(MotorsManager):
         self.turn_motor_by_index(3, velocity)
         
     def stop_moving(self):
-        self.turn_motor_by_index(0, 0)
-        self.turn_motor_by_index(1, 0)
-        self.turn_motor_by_index(2, 0)
-        self.turn_motor_by_index(3, 0)
+        self.stop_all_motors()
 
     def turn(self, velocity: int = 255):
         self.turn_motor_by_index(0, velocity)

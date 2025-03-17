@@ -9,9 +9,7 @@ from servos_manager import ServosManager
 from motors_manager import RobotMotorsManager
 from robot import Robot
 from robot_controller import RobotController
-import shows
-
-WIDTH, HEIGHT = 600, 600
+import shows    
 
 emotion_videos_foler_path = "emotion_videos"
 emotion_video_paths = [f"{emotion_videos_foler_path}/happy.mp4", 
@@ -22,7 +20,7 @@ PORT = 1989
 SERVER_ADDRESS = ("127.0.0.1", PORT)
 
 BAUDRATE = 115200
-PORT = "COM7"
+PORT = "COM6"
 HANDS_PINS = [i for i in range(2, 9)]
 LEFT_MOTOR_PINS = (2, 3)
 RIGHT_MOTOR_PINS = (6, 7)
@@ -33,7 +31,7 @@ mp_holistic = mp.solutions.holistic
 mp_face_mesh = mp.solutions.face_mesh
 mp_face_detection = mp.solutions.face_detection
 
-SHOWS = {"main": shows.main_show}
+SHOWS = {"main": shows.main_show, "square": shows.square_show}
 
 def read_emotion_videos(paths: list) -> list:
     videos = []
@@ -50,11 +48,11 @@ def main():
     if len(sys.argv) < 2 or sys.argv[1] != "sim":
         board = Arduino(PORT)
         hands_manager = ServosManager(board, HANDS_PINS, 90)
-        motors_manager = RobotMotorsManager(board, 
-                                            LEFT_MOTOR_PINS, 
-                                            RIGHT_MOTOR_PINS, 
-                                            BACK_MOTOR_PINS, 
-                                            FRONT_MOTOR_PINS)
+        # motors_manager = RobotMotorsManager(board, 
+        #                                     LEFT_MOTOR_PINS, 
+        #                                     RIGHT_MOTOR_PINS, 
+        #                                     BACK_MOTOR_PINS, 
+        #                                     FRONT_MOTOR_PINS)
     
     cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
