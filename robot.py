@@ -38,12 +38,13 @@ class Robot:
         modified_image = cv2.flip(modified_image, 1)
         if display_frame:
             cv2.imshow(self.name, modified_image)
+
+        self.shows_loop()
             
         if self.landmarks["pose"] is None:
             self.human_found = False
             return (0, None)
         self.human_found = True
-
         self.update_human_location()
 
         return (0, None)
@@ -155,29 +156,30 @@ class Robot:
         for show_name, show_function in shows.items():
             show_steps = show_function()
             self.shows[show_name]["steps"] = show_steps
-            self.shows[show_name]["current_step"] = 0
+            self.shows[show_name]["current_step"] = -1
+
+    def shows_loop(self) -> None:
+        for show in self.shows.values():
+            show_steps, current_step = show.values()
+            if current_step == -1:
+                continue
+            show["current_step"] = show_steps[current_step](self)
 
     def run_show(self, name: str) -> None:
-        show_steps, current_step = self.shows[name].values()
-        if current_step == -1:
-            return
-        self.shows[name]["current_step"] = show_steps[current_step](self)
+        self.set_show_step(name, 0)
 
     def set_show_step(self, name: str, step: int) -> None:
         self.shows[name]["current_step"] = step
-        
-    def reset_show(self, name: str) -> None:
-        self.set_show_step(name, 0)
 
-    def reset_shows(self) -> None:
+    def end_shows(self) -> None:
         for show_name in self.shows.keys():
-            self.set_show_step(show_name, 0)
+            self.set_show_step(show_name, -1)
 
-    def end_show(self, name: str):
+    def end_show(self, name: str) -> None:
         self.set_show_step(name, -1)
 
-    def next_step(self, name: str):
+    def next_step(self, name: str) -> None:
         self.set_show_step(name, self.shows[name]["current_step"] + 1)
 
-    def last_step(self, name: str):
+    def last_step(self, name: str) -> None:
         self.set_show_step(name, self.shows[name]["current_step"] - 1)
