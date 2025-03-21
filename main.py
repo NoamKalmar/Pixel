@@ -2,7 +2,7 @@ import time
 import sys
 import cv2
 import mediapipe as mp
-from pyfirmata import Arduino
+from pyfirmata import ArduinoMega
 
 import detect_landmarks
 from servos_manager import ServosManager
@@ -20,12 +20,12 @@ PORT = 1989
 SERVER_ADDRESS = ("127.0.0.1", PORT)
 
 BAUDRATE = 115200
-PORT = "COM6"
+PORT = "COM4"
 HANDS_PINS = [i for i in range(2, 9)]
-LEFT_MOTOR_PINS = (2, 3)
-RIGHT_MOTOR_PINS = (6, 7)
-BACK_MOTOR_PINS = (8, 9)
-FRONT_MOTOR_PINS = (4, 5)
+LEFT_MOTOR_PINS = (28, 30)
+RIGHT_MOTOR_PINS = (40, 42)
+BACK_MOTOR_PINS = (34, 36)
+FRONT_MOTOR_PINS = (22, 24)
 
 mp_holistic = mp.solutions.holistic
 mp_face_mesh = mp.solutions.face_mesh
@@ -46,13 +46,13 @@ def main():
     hands_manager = None
     motors_manager = None
     if len(sys.argv) < 2 or sys.argv[1] != "sim":
-        board = Arduino(PORT)
+        board = ArduinoMega(PORT)
         hands_manager = ServosManager(board, HANDS_PINS, 90)
-        # motors_manager = RobotMotorsManager(board, 
-        #                                     LEFT_MOTOR_PINS, 
-        #                                     RIGHT_MOTOR_PINS, 
-        #                                     BACK_MOTOR_PINS, 
-        #                                     FRONT_MOTOR_PINS)
+        motors_manager = RobotMotorsManager(board, 
+                                            LEFT_MOTOR_PINS, 
+                                            RIGHT_MOTOR_PINS, 
+                                            BACK_MOTOR_PINS, 
+                                            FRONT_MOTOR_PINS)
     
     cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:

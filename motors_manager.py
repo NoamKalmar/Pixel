@@ -1,7 +1,7 @@
-from pyfirmata import Arduino, PWM, OUTPUT
+from pyfirmata import Arduino, ArduinoMega, PWM, OUTPUT
 
 class MotorsManager:
-    def __init__(self, arduino: Arduino, pins: list):
+    def __init__(self, arduino: Arduino | ArduinoMega, pins: list):
         self.arduino = arduino
         self.pins = pins
         self.init_motors()
@@ -32,7 +32,7 @@ class MotorsManager:
 class RobotMotorsManager(MotorsManager):
     def __init__(
             self, 
-            arduino: Arduino, 
+            arduino: Arduino | ArduinoMega, 
             left_motor_pins: tuple,
             right_motor_pins: tuple,
             back_motor_pins: tuple, 

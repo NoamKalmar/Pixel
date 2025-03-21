@@ -1,7 +1,7 @@
-from pyfirmata import Arduino, SERVO
+from pyfirmata import Arduino, ArduinoMega, SERVO
 
 class ServosManager:
-    def __init__(self, arduino: Arduino, pins: list, start_value: int = 0, default_values: dict = None):
+    def __init__(self, arduino: Arduino | ArduinoMega, pins: list, start_value: int = 0, default_values: dict = None):
         self.pins = pins
         self.arduino = arduino
         self.start_value = start_value
