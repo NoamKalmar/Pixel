@@ -5,7 +5,7 @@ import mediapipe as mp
 from pyfirmata import ArduinoMega
 
 import detect_landmarks
-from servos_manager import ServosManager
+from servos_manager import RobotServosManager
 from motors_manager import RobotMotorsManager
 from robot import Robot
 from robot_controller import RobotController
@@ -19,19 +19,24 @@ emotion_video_paths = [f"{emotion_videos_foler_path}/happy.mp4",
 PORT = 1989
 SERVER_ADDRESS = ("127.0.0.1", PORT)
 
+ROBOT_NAME = "pixel"
+
 BAUDRATE = 115200
 PORT = "COM4"
-HANDS_PINS = [i for i in range(2, 9)]
+
+RIGHT_HAND_PINS = (2, 3, 4)
+LEFT_HAND_PINS = (5, 6, 7)
+HEAD_PIN = 8
+
 LEFT_MOTOR_PINS = (28, 30)
 RIGHT_MOTOR_PINS = (40, 42)
 BACK_MOTOR_PINS = (34, 36)
 FRONT_MOTOR_PINS = (22, 24)
 
-mp_holistic = mp.solutions.holistic
-mp_face_mesh = mp.solutions.face_mesh
-mp_face_detection = mp.solutions.face_detection
+SHOWS = {"main": shows.main_show, 
+         "square": shows.square_show}
 
-SHOWS = {"main": shows.main_show, "square": shows.square_show}
+mp_holistic = mp.solutions.holistic
 
 def read_emotion_videos(paths: list) -> list:
     videos = []
@@ -47,7 +52,7 @@ def main():
     motors_manager = None
     if len(sys.argv) < 2 or sys.argv[1] != "sim":
         board = ArduinoMega(PORT)
-        hands_manager = ServosManager(board, HANDS_PINS, 90)
+        hands_manager = RobotServosManager(board, RIGHT_HAND_PINS, LEFT_HAND_PINS, HEAD_PIN)
         motors_manager = RobotMotorsManager(board, 
                                             LEFT_MOTOR_PINS, 
                                             RIGHT_MOTOR_PINS, 
@@ -60,7 +65,7 @@ def main():
             holistic=holistic,
             motors_manager=motors_manager, 
             hands_manager=hands_manager, 
-            name="Pixel"
+            name=ROBOT_NAME
         )
 
         pixel.load_shows(SHOWS)

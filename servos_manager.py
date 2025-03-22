@@ -24,3 +24,12 @@ class ServosManager:
 
     def write_default_values(self) -> None:
         self.write_all(self.default_values)
+
+class RobotServosManager(ServosManager):
+    def __init__(self, 
+                 arduino: Arduino | ArduinoMega, 
+                 right_hand_pins: list,
+                 left_hand_pins: list,
+                 head_pin: int
+                 ):
+        super().__init__(arduino, right_hand_pins + left_hand_pins + (head_pin,), 90)

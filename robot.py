@@ -6,7 +6,7 @@ from collections import defaultdict
 from collections.abc import Callable
 
 import detect_landmarks
-from servos_manager import ServosManager
+from servos_manager import RobotServosManager
 from motors_manager import RobotMotorsManager
 import pose_landmarks
 
@@ -14,7 +14,7 @@ class Robot:
     def __init__(
             self, 
             holistic,
-            hands_manager: ServosManager=None,
+            hands_manager: RobotServosManager=None,
             motors_manager: RobotMotorsManager=None,
             name="Robot"
     ):
@@ -23,7 +23,7 @@ class Robot:
         self.hands_manager = hands_manager
         self.motors_manager = motors_manager
         self.head_angle = 90
-        self.angles = [[] for i in range(7)]
+        self.angles = [[] for _ in range(7)]
         self.unwanted_boxes = []
         self.landmarks = {}
         self.human_x = None
