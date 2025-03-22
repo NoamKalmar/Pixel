@@ -76,14 +76,16 @@ class Robot:
             return 1
         return 0
     
-    def follow_human(self):
+    def follow_human(self) -> int:
+        "Returns 0 if the x value in incorrect, 1 if the z value is incorrect, and 2 if finished"
         finished_x = self.move_human_x()
         if not finished_x:
-            return
+            return 0
         finished_z = self.move_human_z()
         if not finished_z:
-            return
+            return 1
         self.motors_manager.stop_all_motors()
+        return 2
     
     def calculate_distance(self, focal_length: int = 800) -> None:
         self.distance_to_human = focal_length / -self.landmarks["pose"][0].z

@@ -1,7 +1,7 @@
 from robot import Robot
 from time import sleep
 
-def main_show() -> None:
+def main_show():
     def dance(robot: Robot):
         print("Dancing")
         return 1
@@ -10,7 +10,7 @@ def main_show() -> None:
         return 1
     return [dance, interaction]
 
-def square_show() -> None:
+def square_show():
     def square(robot: Robot):
         robot.motors_manager.move_straight(255)
         sleep(1)
@@ -24,8 +24,11 @@ def square_show() -> None:
         return -1
     return [square]
 
-def test(robot: Robot):
-    robot.motors_manager.turn_all_motors(150)
-    if robot.landmarks:
-        angles = robot.calculate_angles()
-        print(angles)
+def showcase():
+    def interaction(robot: Robot):
+        following_status = robot.follow_human()
+        if following_status != 2:
+            return 0
+        robot.mimic_movements()
+        return 0
+    return [interaction]
