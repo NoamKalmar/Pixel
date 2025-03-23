@@ -28,13 +28,14 @@ RIGHT_HAND_PINS = (2, 3, 4)
 LEFT_HAND_PINS = (5, 6, 7)
 HEAD_PIN = 8
 
-LEFT_MOTOR_PINS = (28, 30)
-RIGHT_MOTOR_PINS = (40, 42)
-BACK_MOTOR_PINS = (34, 36)
-FRONT_MOTOR_PINS = (22, 24)
+LEFT_MOTOR_PINS = (28, 30, 11)
+RIGHT_MOTOR_PINS = (40, 42, 13)
+BACK_MOTOR_PINS = (34, 36, 12)
+FRONT_MOTOR_PINS = (24, 22, 10)
 
 SHOWS = {"main": shows.main_show, 
-         "square": shows.square_show}
+         "square": shows.square_show,
+         "showcase": shows.showcase}
 
 mp_holistic = mp.solutions.holistic
 

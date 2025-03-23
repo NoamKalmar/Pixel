@@ -28,8 +28,8 @@ class ServosManager:
 class RobotServosManager(ServosManager):
     def __init__(self, 
                  arduino: Arduino | ArduinoMega, 
-                 right_hand_pins: list,
-                 left_hand_pins: list,
-                 head_pin: int
+                 right_hand_pins: tuple,
+                 left_hand_pins: tuple,
+                 head_pin: tuple
                  ):
         super().__init__(arduino, right_hand_pins + left_hand_pins + (head_pin,), 90)
