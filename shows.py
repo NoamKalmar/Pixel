@@ -27,7 +27,7 @@ def square_show():
 def showcase():
     def interaction(robot: Robot):
         following_status = robot.follow_human()
-        if following_status != 2:
+        if following_status != 3:
             return 0
         robot.mimic_movements()
         return 0

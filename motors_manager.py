@@ -1,4 +1,5 @@
 from pyfirmata import Arduino, ArduinoMega, PWM, OUTPUT
+from math import cos, sin, radians
 
 class MotorsManager:
     def __init__(self, arduino: Arduino | ArduinoMega, pins: list):
@@ -61,3 +62,12 @@ class RobotMotorsManager(MotorsManager):
         self.turn_motor_by_index(1, -velocity)
         self.turn_motor_by_index(2, -velocity)
         self.turn_motor_by_index(3, velocity)
+
+    def move_angle(self, angle: int, speed: int):
+        angle = radians(angle)
+        x_velocity = cos(angle) * speed
+        y_velocity = sin(angle) * speed
+        self.turn_motor_by_index(0, y_velocity)
+        self.turn_motor_by_index(1, y_velocity)
+        self.turn_motor_by_index(2, x_velocity)
+        self.turn_motor_by_index(0, x_velocity)
