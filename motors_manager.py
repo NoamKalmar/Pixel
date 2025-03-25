@@ -42,8 +42,6 @@ class RobotMotorsManager(MotorsManager):
         pins = [left_motor_pins, right_motor_pins, back_motor_pins, front_motor_pins]
         super().__init__(arduino, pins)
         self.status = 0 # 0 - Not moving, 1 - moving x, 2 - moving y
-        self.last_x_time = None
-        self.last_y_time = None
     
     def move_x(self, velocity: int = 255, stop_if_change: bool = False, stop_time: float = 1):
         self.turn_motor_by_index(0, 0)

@@ -33,3 +33,24 @@ class RobotServosManager(ServosManager):
                  head_pin: tuple
                  ):
         super().__init__(arduino, right_hand_pins + left_hand_pins + (head_pin,), 90)
+
+    def set_right_hand(self, angle1: int, angle2: int, angle3: int) -> None:
+        self.write_by_index(0, angle1)
+        self.write_by_index(1, angle2)
+        self.write_by_index(2, angle3)
+
+    def set_left_hand(self, angle1: int, angle2: int, angle3: int) -> None:
+        self.write_by_index(3, angle1)
+        self.write_by_index(4, angle2)
+        self.write_by_index(5, angle3)
+
+    def set_hands(self, angle1: int, angle2: int, angle3: int, mirror: bool = True) -> None:
+        self.set_right_hand(angle1, angle2, angle3)
+        if mirror:
+            self.set_left_hand(180 - angle1, angle2, 180 - angle3)
+        else:
+            self.set_left_hand(angle1, angle2, angle3)
+            
+    
+    def set_angle(self, angle: int) -> None:
+        self.write_by_index(6, angle)
