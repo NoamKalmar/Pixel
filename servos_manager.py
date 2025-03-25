@@ -39,17 +39,17 @@ class RobotServosManager(ServosManager):
         self.write_by_index(1, angle2)
         self.write_by_index(2, angle3)
 
-    def set_left_hand(self, angle1: int, angle2: int, angle3: int) -> None:
+    def set_left_hand(self, angle1: int, angle2: int, angle3: int, mirror: bool = True) -> None:
+        if mirror:
+            angle1 = 180 - angle1
+            angle3 = 180 - angle3
         self.write_by_index(3, angle1)
         self.write_by_index(4, angle2)
         self.write_by_index(5, angle3)
 
     def set_hands(self, angle1: int, angle2: int, angle3: int, mirror: bool = True) -> None:
         self.set_right_hand(angle1, angle2, angle3)
-        if mirror:
-            self.set_left_hand(180 - angle1, angle2, 180 - angle3)
-        else:
-            self.set_left_hand(angle1, angle2, angle3)
+        self.set_left_hand(angle1, angle2, angle3, mirror)
             
     
     def set_angle(self, angle: int) -> None:
