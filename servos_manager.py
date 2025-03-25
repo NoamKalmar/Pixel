@@ -50,7 +50,6 @@ class RobotServosManager(ServosManager):
     def set_hands(self, angle1: int, angle2: int, angle3: int, mirror: bool = True) -> None:
         self.set_right_hand(angle1, angle2, angle3)
         self.set_left_hand(angle1, angle2, angle3, mirror)
-            
     
     def set_angle(self, angle: int) -> None:
         self.write_by_index(6, angle)
