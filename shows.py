@@ -12,13 +12,13 @@ def main_show():
 
 def square_show():
     def square(robot: Robot):
-        robot.motors_manager.move_straight(255)
+        robot.motors_manager.move_y(255)
         sleep(1)
-        robot.motors_manager.move_side(255)
+        robot.motors_manager.move_x(255)
         sleep(1)
-        robot.motors_manager.move_straight(-255)
+        robot.motors_manager.move_y(-255)
         sleep(1)
-        robot.motors_manager.move_side(-255)
+        robot.motors_manager.move_x(-255)
         sleep(1)
         robot.motors_manager.stop_moving()
         return -1

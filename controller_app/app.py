@@ -6,10 +6,10 @@ import time
 from collections import defaultdict
 
 DEFAULT_TITLE = "Waiting for connection"
-MOVE_LEFT_COMMAND = "motors_manager.move_side(-255)"
-MOVE_RIGHT_COMMAND = "motors_manager.move_side(255)"
-MOVE_FORWARDS_COMMAND = "motors_manager.move_straight(255)"
-MOVE_BACKWARDS_COMMAND = "motors_manager.move_straight(-255)"
+MOVE_LEFT_COMMAND = "motors_manager.move_x(-255)"
+MOVE_RIGHT_COMMAND = "motors_manager.move_x(255)"
+MOVE_FORWARDS_COMMAND = "motors_manager.move_y(255)"
+MOVE_BACKWARDS_COMMAND = "motors_manager.move_y(-255)"
 STOP_MOVING_COMMAND = "motors_manager.stop_moving()"
 
 LOCALHOST_SERVER_ADDRESS = "127.0.0.1:1989"

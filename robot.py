@@ -56,20 +56,20 @@ class Robot:
 
     def move_human_x(self, stop=False, max_right: float = 0.2, max_left: float = 0.8, velocity: int = 255):
         if self.human_x > max_left:
-            self.motors_manager.move_side(velocity)
+            self.motors_manager.move_x(velocity, True)
         elif self.human_x < max_right:
-            self.motors_manager.move_side(-velocity)
+            self.motors_manager.move_x(-velocity, True)
         else:
             if stop:
                 self.motors_manager.stop_all_motors()
             return 1
         return 0
 
-    def move_human_z(self, stop=False, too_close: float = -1, too_far: float = -0.5, velocity: int = 255):
+    def move_human_y(self, stop=False, too_close: float = -1, too_far: float = -0.5, velocity: int = 255):
         if self.human_z > too_far:
-            self.motors_manager.move_straight(velocity)
+            self.motors_manager.move_y(velocity, True)
         elif self.human_z < too_close:
-            self.motors_manager.move_straight(-velocity)
+            self.motors_manager.move_y(-velocity, True)
         else:
             if stop:
                 self.motors_manager.stop_all_motors()
@@ -77,13 +77,13 @@ class Robot:
         return 0
     
     def follow_human(self) -> int:
-        if not self.human_found:
-            self.motors_manager.turn(150)
-            return 0
-        # finished_x = self.move_human_x()
-        # if not finished_x:
-        #     return 1
-        finished_z = self.move_human_z()
+        # if not self.human_found:
+        #     self.motors_manager.turn(150)
+        #     return 0
+        finished_x = self.move_human_x()
+        if not finished_x:
+            return 1
+        finished_z = self.move_human_y()
         if not finished_z:
             return 2
         self.motors_manager.stop_all_motors()

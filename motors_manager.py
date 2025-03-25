@@ -1,5 +1,5 @@
 from pyfirmata import Arduino, ArduinoMega, PWM, OUTPUT
-from math import cos, sin, radians
+import time
 
 class MotorsManager:
     def __init__(self, arduino: Arduino | ArduinoMega, pins: list):
@@ -41,20 +41,30 @@ class RobotMotorsManager(MotorsManager):
         ):
         pins = [left_motor_pins, right_motor_pins, back_motor_pins, front_motor_pins]
         super().__init__(arduino, pins)
-
-    def move_straight(self, velocity: int = 255):
-        self.turn_motor_by_index(0, velocity)
-        self.turn_motor_by_index(1, velocity)
-        self.turn_motor_by_index(2, 0)
-        self.turn_motor_by_index(3, 0)
-
-    def move_side(self, velocity: int = 255):
+        self.status = 0 # 0 - Not moving, 1 - moving x, 2 - moving y
+        self.last_x_time = None
+        self.last_y_time = None
+    
+    def move_x(self, velocity: int = 255, stop_if_change: bool = False, stop_time: float = 1):
         self.turn_motor_by_index(0, 0)
         self.turn_motor_by_index(1, 0)
+        if stop_if_change and self.status == 2:
+            time.sleep(stop_time)
         self.turn_motor_by_index(2, velocity)
         self.turn_motor_by_index(3, velocity)
+        self.status = 1
+
+    def move_y(self, velocity: int = 255, stop_if_change: bool = False, stop_time: float = 1):
+        self.turn_motor_by_index(2, 0)
+        self.turn_motor_by_index(3, 0)
+        if stop_if_change and self.status == 1:
+            time.sleep(stop_time)
+        self.turn_motor_by_index(0, velocity)
+        self.turn_motor_by_index(1, velocity)
+        self.status = 2
         
     def stop_moving(self):
+        self.status = 0
         self.stop_all_motors()
 
     def turn(self, velocity: int = 255):
@@ -63,11 +73,8 @@ class RobotMotorsManager(MotorsManager):
         self.turn_motor_by_index(2, -velocity)
         self.turn_motor_by_index(3, velocity)
 
-    def move_angle(self, angle: int, speed: int):
-        angle = radians(angle)
-        x_velocity = cos(angle) * speed
-        y_velocity = sin(angle) * speed
-        self.turn_motor_by_index(0, y_velocity)
-        self.turn_motor_by_index(1, y_velocity)
-        self.turn_motor_by_index(2, x_velocity)
-        self.turn_motor_by_index(0, x_velocity)
+    def move_side(self, velocity: int = 255):
+        self.move_x(velocity)
+    
+    def move_straight(self, velocity: int = 255):
+        self.move_y(velocity)
