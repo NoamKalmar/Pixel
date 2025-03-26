@@ -10,7 +10,7 @@ def get_points(landmarks: list, landmarks_numbers: list) -> list:
             points.append(point)
         return points
 
-def vectors_angle(points):
+def vectors_angle(points: list) -> int:
     a = points[0]
     b = points[1]
     c = points[2]

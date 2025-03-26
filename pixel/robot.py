@@ -30,7 +30,7 @@ class Robot:
         self.human_y = None
         self.human_z = None
         self.human_found = False
-        self.shows = defaultdict(dict) # {name: {"steps": [show_step0, show_step1, ...], "current_step": current_step}}
+        self.shows = defaultdict(dict) # {"name": {"steps": [show_step0, show_step1, ...], "current_step": current_step}}
         
     def loop(self, image: np.ndarray, display_frame: bool, max_distance: int = None) -> tuple:
         covered_image = image.copy()
