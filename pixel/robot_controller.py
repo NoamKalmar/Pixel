@@ -49,6 +49,8 @@ class RobotController:
 
     def send_live_data(self, conn: socket.socket):
         while self.running and self.client_connected:
+            if not conn:
+                break
             message = server_protocol.send_data(self.commands)
             conn.sendall(message)
             for command in self.commands:

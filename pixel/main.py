@@ -17,7 +17,7 @@ emotion_video_paths = [f"{emotion_videos_foler_path}/happy.mp4",
                        f"{emotion_videos_foler_path}/neutral.mp4"]
 
 PORT = 1989
-SERVER_ADDRESS = ("127.0.0.1", PORT)
+SERVER_ADDRESS = ("0.0.0.0", PORT)
 
 ROBOT_NAME = "pixel"
 
