@@ -1,29 +1,61 @@
 from pyfirmata import Arduino, ArduinoMega, SERVO
+import time
+import threading
 
 class ServosManager:
-    def __init__(self, arduino: Arduino | ArduinoMega, pins: list, start_value: int = 0, default_values: dict = None):
+    def __init__(self, arduino: Arduino | ArduinoMega, pins: list, start_angle: int = 0, default_angles: dict = None):
         self.pins = pins
         self.arduino = arduino
-        self.start_value = start_value
-        self.default_values = default_values
+        self.start_angle = start_angle
+        self.default_angles = default_angles
+        self.current_angles = [start_angle for _ in range(len(self.pins))]
+        self.is_moving = [False for _ in range(len(self.pins))]
+        self.should_stop_moving = [False for _ in range(len(self.pins))]
         self.init_servos()
 
     def init_servos(self) -> None:
-        for pin in self.pins:
-            self.arduino.digital[pin].mode = SERVO
-            self.arduino.digital[pin].write(self.start_value)
-    
-    def write_all(self, values: list) -> None:
         for i, pin in enumerate(self.pins):
-            if values[i] is None:
-                continue
-            self.arduino.digital[pin].write(values[i])
+            self.arduino.digital[pin].mode = SERVO
+            self.write_by_index(i, self.start_angle)
     
-    def write_by_index(self, index: int, value: int) -> None:
-        self.arduino.digital[self.pins[index]].write(value)
+    def write_all(self, angle: list) -> None:
+        for i in range(self.pins):
+            if angle[i] is None:
+                continue
+            self.write_by_index(i, angle)
+    
+    def write_by_index(self, index: int, angle: int, part_of_move: bool = False) -> None:
+        if not part_of_move:
+            self.stop_moving(index)
+        angle = max(min(angle, 180), 0) # Keep angle between 0 and 180
+        self.arduino.digital[self.pins[index]].write(angle)
+        self.current_angles[index] = angle
 
     def write_default_values(self) -> None:
         self.write_all(self.default_values)
+
+    def move_by_index(self, index: int, target_value: int, rate: float = 0.01) -> None:
+        moving_thread = threading.Thread(target=self._move_by_index, args=(index, target_value, rate))
+        moving_thread.start()
+
+    def _move_by_index(self, index: int, target_angle: int, rate: float = 0.01) -> None:
+        self.stop_moving(index)
+        start_angle = self.current_angles[index]
+        step = 1 if target_angle > start_angle else -1
+        self.is_moving[index] = True
+        for angle in range(self.current_angles[index], target_angle + 1, step):
+            if self.should_stop_moving[index]:
+                break
+            self.write_by_index(index, angle, True)
+            time.sleep(rate)
+        self.is_moving[index] = False
+
+    def stop_moving(self, index: int) -> None:
+        if not self.is_moving[index]:
+            return
+        self.should_stop_moving[index] = True
+        while self.is_moving[index]: pass # Wait until the moving thread got the message and stopped
+        self.should_stop_moving[index] = False
 
 class RobotServosManager(ServosManager):
     def __init__(self, 
@@ -46,10 +78,27 @@ class RobotServosManager(ServosManager):
         self.write_by_index(3, angle1)
         self.write_by_index(4, angle2)
         self.write_by_index(5, angle3)
+    
 
     def set_hands(self, angle1: int, angle2: int, angle3: int, mirror: bool = True) -> None:
         self.set_right_hand(angle1, angle2, angle3)
         self.set_left_hand(angle1, angle2, angle3, mirror)
     
-    def set_angle(self, angle: int) -> None:
+    def set_head(self, angle: int) -> None:
         self.write_by_index(6, angle)
+        
+    def move_right_hand(self, angle1: int, angle2: int, angle3: int, rate: float = 0.01) -> None:
+        self.move_by_index(0, angle1, rate)
+        self.move_by_index(1, angle2, rate)
+        self.move_by_index(2, angle3, rate)
+
+    def move_left_hand(self, angle1: int, angle2: int, angle3: int, rate: float = 0.01, mirror: bool = True) -> None:
+        if mirror:
+            angle1 = 180 - angle1
+            angle3 = 180 - angle3
+        self.move_by_index(3, angle1, rate)
+        self.move_by_index(4, angle2, rate)
+        self.move_by_index(5, angle3, rate)
+
+    def move_head(self, angle: int, rate: float = 0.01):
+        self.move_by_index(6, angle, rate)
