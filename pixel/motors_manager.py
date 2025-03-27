@@ -14,7 +14,7 @@ class MotorsManager:
             if len(pins) > 2:
                 self.arduino.digital[pins[2]].mode = PWM
 
-    def turn_motor_by_index(self, index: int, velocity: int = 255):
+    def turn_motor(self, index: int, velocity: int = 255):
         velocity = max(min(velocity, 255), -255)
         pin1_value = 0 if velocity <= 0 else 1
         pin2_value = 0 if velocity >= 0 else 1
@@ -25,7 +25,7 @@ class MotorsManager:
 
     def turn_all_motors(self, velocity: int):
         for i in range(len(self.pins)):
-            self.turn_motor_by_index(i, velocity)
+            self.turn_motor(i, velocity)
 
     def stop_all_motors(self):
         self.turn_all_motors(0)
@@ -44,21 +44,21 @@ class RobotMotorsManager(MotorsManager):
         self.status = 0 # 0 - Not moving, 1 - moving x, 2 - moving y
     
     def move_x(self, velocity: int = 255, stop_if_change: bool = False, stop_time: float = 1):
-        self.turn_motor_by_index(0, 0)
-        self.turn_motor_by_index(1, 0)
+        self.turn_motor(0, 0)
+        self.turn_motor(1, 0)
         if stop_if_change and self.status == 2:
             time.sleep(stop_time)
-        self.turn_motor_by_index(2, velocity)
-        self.turn_motor_by_index(3, velocity)
+        self.turn_motor(2, velocity)
+        self.turn_motor(3, velocity)
         self.status = 1
 
     def move_y(self, velocity: int = 255, stop_if_change: bool = False, stop_time: float = 1):
-        self.turn_motor_by_index(2, 0)
-        self.turn_motor_by_index(3, 0)
+        self.turn_motor(2, 0)
+        self.turn_motor(3, 0)
         if stop_if_change and self.status == 1:
             time.sleep(stop_time)
-        self.turn_motor_by_index(0, velocity)
-        self.turn_motor_by_index(1, velocity)
+        self.turn_motor(0, velocity)
+        self.turn_motor(1, velocity)
         self.status = 2
         
     def stop_moving(self):
@@ -66,10 +66,10 @@ class RobotMotorsManager(MotorsManager):
         self.stop_all_motors()
 
     def turn(self, velocity: int = 255):
-        self.turn_motor_by_index(0, velocity)
-        self.turn_motor_by_index(1, -velocity)
-        self.turn_motor_by_index(2, -velocity)
-        self.turn_motor_by_index(3, velocity)
+        self.turn_motor(0, velocity)
+        self.turn_motor(1, -velocity)
+        self.turn_motor(2, -velocity)
+        self.turn_motor(3, velocity)
 
     def move_side(self, velocity: int = 255):
         self.move_x(velocity)

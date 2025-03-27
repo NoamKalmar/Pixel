@@ -147,14 +147,10 @@ class Robot:
             return
         angles = self.calculate_angles()
         for i, angle in enumerate(angles):
-            if angle < 0:
-                angle = 0
-            elif angle > 180:
-                angle = 180
             self.angles[i].append(angle)
             self.angles[i] = self.angles[i][-average_of:]
             average_angle = sum(self.angles[i]) / len(self.angles[i])
-            self.hands_manager.write_by_index(i, round(average_angle))
+            self.hands_manager.write_servo(i, round(average_angle))
 
     def load_shows(self, shows: dict[str, Callable]) -> None:
         for show_name, show_function in shows.items():
