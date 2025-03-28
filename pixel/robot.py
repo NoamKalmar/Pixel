@@ -14,13 +14,13 @@ class Robot:
     def __init__(
             self, 
             holistic,
-            hands_manager: RobotServosManager=None,
-            motors_manager: RobotMotorsManager=None,
+            servos_manager: RobotServosManager | None,
+            motors_manager: RobotMotorsManager | None,
             name="Robot"
     ):
         self.holistic = holistic
         self.name = name
-        self.hands_manager = hands_manager
+        self.servos_manager = servos_manager
         self.motors_manager = motors_manager
         self.head_angle = 90
         self.angles = [[] for _ in range(7)]

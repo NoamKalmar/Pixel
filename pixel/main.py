@@ -35,7 +35,8 @@ FRONT_MOTOR_PINS = (24, 22, 10)
 
 SHOWS = {"main": shows.main_show, 
          "square": shows.square_show,
-         "showcase": shows.showcase}
+         "showcase": shows.showcase,
+         "muscle": shows.show_muscle}
 
 mp_holistic = mp.solutions.holistic
 
@@ -49,11 +50,11 @@ def read_emotion_videos(paths: list) -> list:
 
 def main():
     videos = read_emotion_videos(emotion_video_paths)
-    hands_manager = None
+    servos_manager = None
     motors_manager = None
     if len(sys.argv) < 2 or sys.argv[1] != "sim":
         board = ArduinoMega(PORT)
-        hands_manager = RobotServosManager(board, RIGHT_HAND_PINS, LEFT_HAND_PINS, HEAD_PIN)
+        servos_manager = RobotServosManager(board, RIGHT_HAND_PINS, LEFT_HAND_PINS, HEAD_PIN)
         motors_manager = RobotMotorsManager(board, 
                                             LEFT_MOTOR_PINS, 
                                             RIGHT_MOTOR_PINS, 
@@ -65,7 +66,7 @@ def main():
         pixel = Robot(
             holistic=holistic,
             motors_manager=motors_manager, 
-            hands_manager=hands_manager, 
+            servos_manager=servos_manager, 
             name=ROBOT_NAME
         )
 
