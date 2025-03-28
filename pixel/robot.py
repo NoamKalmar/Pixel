@@ -130,10 +130,10 @@ class Robot:
         angle2 = 180 - pose_landmarks.vectors_angle([a1, b1, d1])
         angle3 = 180 - pose_landmarks.vectors_angle([b1, a1, c1])
 
-        angle4 = pose_landmarks.vectors_angle([a2, b2, e2])
+        angle4 = 180 - pose_landmarks.vectors_angle([a2, b2, e2])
         angle4 = (angle4 - 60) * 3
         angle5 = 180 - pose_landmarks.vectors_angle([a2, b2, d2])
-        angle6 = pose_landmarks.vectors_angle([b2, a2, c2])
+        angle6 = 180 - pose_landmarks.vectors_angle([b2, a2, c2])
 
         if self.landmarks["pose"][0].x < 0.3:
             self.head_angle += 1

@@ -10,11 +10,12 @@ class Servo:
     current_angle: int = 0
     is_moving: bool = False
     should_stop_moving: bool = False
+    is_mirrored: bool = False
 
 
 class ServosManager:
     def __init__(self, arduino: Arduino | ArduinoMega, pins: tuple, default_angle: int = 0):
-        self.servos = []
+        self.servos: list[Servo] = []
         self.arduino = arduino
         self.default_angle = default_angle
         self.init_servos(pins)
@@ -29,6 +30,8 @@ class ServosManager:
     def write_servo(self, index: int, angle: int, part_of_move: bool = False) -> None:
         if not part_of_move:
             self.stop_moving(index)
+        if self.servos[index].is_mirrored:
+            angle = 180 - angle
         angle = max(min(angle, 180), 0) # Keep angle between 0 and 180
         self.arduino.digital[self.servos[index].pin].write(angle)
         self.servos[index].current_angle = angle
@@ -40,11 +43,11 @@ class ServosManager:
     def write_default(self) -> None:
         self.write_all(self.default_angle)
 
-    def play_sequence(self, index: int, sequence: Iterable, rate: float = 0.01) -> None:
+    def play_sequence(self, index: int, sequence: Iterable, rate: float = 0.02) -> None:
         moving_thread = threading.Thread(target=self._play_sequence, args=(index, sequence, rate))
         moving_thread.start()
 
-    def _play_sequence(self, index: int, sequence: Iterable, rate: float = 0.01) -> None:
+    def _play_sequence(self, index: int, sequence: Iterable, rate: float = 0.02) -> None:
         self.stop_moving(index)
         self.servos[index].is_moving = True
         for angle in sequence:
@@ -54,7 +57,7 @@ class ServosManager:
             time.sleep(rate)
         self.servos[index].is_moving = False
     
-    def move_servo(self, index: int, target_angle: int, rate: int = 0.01):
+    def move_servo(self, index: int, target_angle: int, rate: int = 0.02):
         current_angle = self.servos[index].current_angle
         step = 1 if target_angle > current_angle else -1
         sequence = range(self.servos[index].current_angle, target_angle + 1, step)
@@ -75,40 +78,39 @@ class RobotServosManager(ServosManager):
                  head_pin: tuple
                  ):
         super().__init__(arduino, right_hand_pins + left_hand_pins + (head_pin,), 90)
+        self.servos[3].is_mirrored = True
+        self.servos[5].is_mirrored = True
 
     def set_right_hand(self, angle1: int, angle2: int, angle3: int) -> None:
         self.write_servo(0, angle1)
         self.write_servo(1, angle2)
         self.write_servo(2, angle3)
 
-    def set_left_hand(self, angle1: int, angle2: int, angle3: int, mirror: bool = True) -> None:
-        if mirror:
-            angle1 = 180 - angle1
-            angle3 = 180 - angle3
+    def set_left_hand(self, angle1: int, angle2: int, angle3: int) -> None:
         self.write_servo(3, angle1)
         self.write_servo(4, angle2)
         self.write_servo(5, angle3)
-    
 
-    def set_hands(self, angle1: int, angle2: int, angle3: int, mirror: bool = True) -> None:
+    def set_hands(self, angle1: int, angle2: int, angle3: int) -> None:
         self.set_right_hand(angle1, angle2, angle3)
-        self.set_left_hand(angle1, angle2, angle3, mirror)
+        self.set_left_hand(angle1, angle2, angle3)
     
     def set_head(self, angle: int) -> None:
         self.write_servo(6, angle)
         
-    def move_right_hand(self, angle1: int, angle2: int, angle3: int, rate: float = 0.01) -> None:
+    def move_right_hand(self, angle1: int, angle2: int, angle3: int, rate: float = 0.02) -> None:
         self.move_servo(0, angle1, rate)
         self.move_servo(1, angle2, rate)
         self.move_servo(2, angle3, rate)
 
-    def move_left_hand(self, angle1: int, angle2: int, angle3: int, rate: float = 0.01, mirror: bool = True) -> None:
-        if mirror:
-            angle1 = 180 - angle1
-            angle3 = 180 - angle3
+    def move_left_hand(self, angle1: int, angle2: int, angle3: int, rate: float = 0.02) -> None:
         self.move_servo(3, angle1, rate)
         self.move_servo(4, angle2, rate)
         self.move_servo(5, angle3, rate)
 
-    def move_head(self, angle: int, rate: float = 0.01):
+    def move_hands(self, angle1: int, angle2: int, angle3: int, rate: float = 0.02) -> None:
+        self.move_right_hand(angle1, angle2, angle3, rate)
+        self.move_left_hand(angle1, angle2, angle3, rate)
+
+    def move_head(self, angle: int, rate: float = 0.02):
         self.move_servo(6, angle, rate)
