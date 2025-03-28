@@ -30,10 +30,11 @@ class ServosManager:
     def write_servo(self, index: int, angle: int, part_of_move: bool = False) -> None:
         if not part_of_move:
             self.stop_moving(index)
+        writing_angle = angle
         if self.servos[index].is_mirrored:
-            angle = 180 - angle
-        angle = max(min(angle, 180), 0) # Keep angle between 0 and 180
-        self.arduino.digital[self.servos[index].pin].write(angle)
+            writing_angle = 180 - angle
+        writing_angle = max(min(writing_angle, 180), 0) # Keep angle between 0 and 180
+        self.arduino.digital[self.servos[index].pin].write(writing_angle)
         self.servos[index].current_angle = angle
 
     def write_all(self, angle: int) -> None:
