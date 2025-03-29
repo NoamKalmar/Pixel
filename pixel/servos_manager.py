@@ -35,7 +35,7 @@ class ServosManager:
 
     def write_servo(self, index: int, angle: int, part_of_move: bool = False) -> None:
         if not part_of_move:
-            self.stop_moving(index)
+            self._stop_moving(index)
         angle = max(min(angle, 180), 0) # Keep angle between 0 and 180
         writing_angle = angle
         if self.servos[index].is_mirrored:
@@ -53,7 +53,7 @@ class ServosManager:
     def play_sequence(self, index: int, sequence: Iterable, rate: float = 0.01) -> None:
         if rate > PROGRESS_THRESHOLD - 0.1:
             rate = PROGRESS_THRESHOLD - 0.1
-        self.stop_moving(index)
+        self._stop_moving(index)
         self.servos[index].is_moving = True
         movement_thread = threading.Thread(target=self._play_sequence, args=(index, sequence, rate))
         self.servos[index].movement_thread = movement_thread
@@ -79,7 +79,7 @@ class ServosManager:
         sequence = range(self.servos[index].current_angle, target_angle + 1, step)
         self.play_sequence(index, sequence, rate)
 
-    def stop_moving(self, index: int) -> None:
+    def _stop_moving(self, index: int) -> None:
         if not self.servos[index].is_moving:
             return
         self.servos[index].should_stop_moving = True

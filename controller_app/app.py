@@ -5,11 +5,14 @@ from client import Client
 import time
 from collections import defaultdict
 
+WIDTH = 600
+HEIGHT = 300
+
 DEFAULT_TITLE = "Waiting for connection"
 MOVE_LEFT_COMMAND = "motors_manager.move_x(-255)"
 MOVE_RIGHT_COMMAND = "motors_manager.move_x(255)"
-MOVE_FORWARDS_COMMAND = "motors_manager.move_y(255)"
-MOVE_BACKWARDS_COMMAND = "motors_manager.move_y(-255)"
+MOVE_FORWARD_COMMAND = "motors_manager.move_y(255)"
+MOVE_BACKWARD_COMMAND = "motors_manager.move_y(-255)"
 STOP_MOVING_COMMAND = "motors_manager.stop_moving()"
 
 LOCALHOST_SERVER_ADDRESS = "127.0.0.1:1989"
@@ -17,10 +20,11 @@ LOCALHOST_SERVER_ADDRESS = "127.0.0.1:1989"
 class ControllerApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.geometry("600x200")
+        self.geometry(f"{WIDTH}x{HEIGHT}")
         self.title(DEFAULT_TITLE)
 
         self.is_current_triggred = tk.BooleanVar()
+        self.is_arrows_moving_mode = False
 
         self.ip_frame = tk.Frame(self)
         self.ip_frame.pack()
@@ -36,6 +40,8 @@ class ControllerApp(tk.Tk):
         self.untriggred_data_label = None
         self.last_untriggred_id = None
         self.client = None
+
+        # Movement control using the arrows keys
     
     def add_ip_frame(self):
         self.ip_label = tk.Label(self.ip_frame, text="Enter IP")
@@ -49,6 +55,7 @@ class ControllerApp(tk.Tk):
             text="Connect to localhost", 
             command=lambda: self.connect(LOCALHOST_SERVER_ADDRESS)
         )
+        self.focus_set()
         self.localhost_button.pack()
 
     def add_control_frame(self):
@@ -90,17 +97,17 @@ class ControllerApp(tk.Tk):
         )
         self.right_button.grid(row=1, column=4)
 
-        self.forwards_button = tk.Button(
+        self.forward_button = tk.Button(
             self.control_frame, 
             text="Forward",
-            command=lambda: self.add_command(MOVE_FORWARDS_COMMAND, False)
+            command=lambda: self.add_command(MOVE_FORWARD_COMMAND, False)
         )
-        self.forwards_button.grid(row=0, column=3)
+        self.forward_button.grid(row=0, column=3)
 
         self.backward_button = tk.Button(
             self.control_frame, 
             text="Backward",
-            command=lambda: self.add_command(MOVE_BACKWARDS_COMMAND, False)
+            command=lambda: self.add_command(MOVE_BACKWARD_COMMAND, False)
         )
         self.backward_button.grid(row=2, column=3)
 
@@ -110,6 +117,31 @@ class ControllerApp(tk.Tk):
             command=lambda: self.add_command(STOP_MOVING_COMMAND, False)
         )
         self.stop_button.grid(row=1, column=3, pady=10)
+        
+        self.arrows_moving_label = tk.Label(self.control_frame, text="Enable arrows moving")
+        self.arrows_moving_label.grid(row=0, column=5)
+
+        self.arrows_moving_checkbutton = tk.Checkbutton(self.control_frame, 
+                                                        command=self.moving_mode_change)
+        self.arrows_moving_checkbutton.grid(row=1, column=5)
+
+    def moving_mode_change(self):
+        if not self.is_arrows_moving_mode:
+            self.bind("<Left>", lambda event: self.add_command(MOVE_LEFT_COMMAND, False))
+            self.bind("<Right>", lambda event: self.add_command(MOVE_RIGHT_COMMAND, False))
+            self.bind("<Up>", lambda event: self.add_command(MOVE_FORWARD_COMMAND, False))
+            self.bind("<Down>", lambda event: self.add_command(MOVE_BACKWARD_COMMAND, False))
+            self.bind("<KeyRelease>", lambda event: self.add_command(STOP_MOVING_COMMAND, False))
+            self.bind("<Return>", lambda event: self.add_command(STOP_MOVING_COMMAND, False))
+            self.is_arrows_moving_mode = True
+        else:
+            self.unbind("<Left>")
+            self.unbind("<Right>")
+            self.unbind("<Up>")
+            self.unbind("<Down>")
+            self.unbind("<KeyRelease>")
+            self.unbind("<Return>")
+            self.is_arrows_moving_mode = False
 
 
     def update_data_table(self):
@@ -148,6 +180,8 @@ class ControllerApp(tk.Tk):
         self.after(100, self.update_data_table)
 
     def add_command(self, command: str = None, is_triggred: bool = None):
+        if not self.client:
+            return
         if not command:
             command = self.command_entry.get()
             is_triggred = self.is_current_triggred.get()
@@ -192,6 +226,7 @@ class ControllerApp(tk.Tk):
             self.client = None
         self.control_frame.pack_forget()
         self.table_frame.pack_forget()
+        self.title(DEFAULT_TITLE)
         self.ip_frame.pack()
 
     def on_closing(self):
