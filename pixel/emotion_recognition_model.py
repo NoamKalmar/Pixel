@@ -50,6 +50,10 @@ def predict_emotion(model, landmarks, random_seed: int = 13) -> int:
     probability = prediction[0][predicted_emotion]
     return predicted_emotion, probability
 
+def load_model():
+    model = keras.saving.load_model(MODEL_PATH)
+    return model
+
 def main() -> None:
     model = get_model()
     model = train_model(model, DATASET_PATH, INPUT_SHAPE)

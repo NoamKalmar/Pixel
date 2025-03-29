@@ -4,11 +4,16 @@ import math
 import numpy as np
 from collections import defaultdict
 from collections.abc import Callable
+import threading
+import json
+import time
 
 import detect_landmarks
 from servos_manager import RobotServosManager
 from motors_manager import RobotMotorsManager
 import pose_landmarks
+import emotion_recognition_model
+import face_landmarks
 
 class Robot:
     def __init__(
@@ -31,6 +36,8 @@ class Robot:
         self.human_z = None
         self.human_found = False
         self.shows = defaultdict(dict) # {"name": {"steps": [show_step0, show_step1, ...], "current_step": current_step}}
+        self.emotion_recognition_model = emotion_recognition_model.load_model()
+        self.emotion = None
         
     def loop(self, image: np.ndarray, display_frame: bool, max_distance: int = None) -> tuple:
         covered_image = image.copy()
@@ -53,6 +60,13 @@ class Robot:
         self.human_x = self.landmarks["pose"][0].x
         self.human_y = self.landmarks["pose"][0].y
         self.human_z = self.landmarks["pose"][0].z
+
+    def update_human_emotion(self):
+        if not self.landmarks["face"]:
+            return
+        self.emotion = emotion_recognition_model.predict_emotion(
+            self.emotion_recognition_model, face_landmarks.landmarks_to_list(self.landmarks["face"])
+        )[0]
 
     def move_human_x(self, stop=False, max_right: float = 0.2, max_left: float = 0.8, velocity: int = 255):
         if self.human_x > max_left:
@@ -151,6 +165,25 @@ class Robot:
             self.angles[i] = self.angles[i][-average_of:]
             average_angle = sum(self.angles[i]) / len(self.angles[i])
             self.hands_manager.write_servo(i, round(average_angle))
+
+    def record_gesture(self, name: str, gestures_folder: str, is_right_human_hand: bool = True, rate: int = 0.01) -> None:
+        recording_thread = threading.Thread(target=self._record_gesture, args=(name, gestures_folder, is_right_human_hand, rate))
+        recording_thread.start()
+
+    def _record_gesture(self, name: str, gestures_folder: str, is_right_human_hand: bool = True, rate: int = 0.01) -> None:
+        while not self.landmarks["face"] and self.emotion != 0:
+            pass
+        time.sleep(3)
+        gesture = {"rate": rate, "angle1": [], "angle2": [], "angle3": []}
+        while self.emotion != 0:
+            self.update_human_emotion()
+            angles = self.calculate_angles()
+            # Work for both hands
+            for i in range(3):
+                gesture[f"angle{i + 1}"].append(angles[i] if is_right_human_hand else angles[i + 3])
+            time.sleep(rate)
+        with open(f"{gestures_folder}/{name}.json", "w") as file:
+            json.dump(gesture, file)
 
     def load_shows(self, shows: dict[str, Callable]) -> None:
         for show_name, show_function in shows.items():

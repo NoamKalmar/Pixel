@@ -38,6 +38,8 @@ SHOWS = {"main": shows.main_show,
          "showcase": shows.showcase,
          "muscle": shows.show_muscle}
 
+GESTURES_FOLDER = "gestures"
+
 mp_holistic = mp.solutions.holistic
 
 def read_emotion_videos(paths: list) -> list:
@@ -55,13 +57,14 @@ def main():
     if len(sys.argv) < 2 or sys.argv[1] != "sim":
         board = ArduinoMega(PORT)
         servos_manager = RobotServosManager(board, RIGHT_HAND_PINS, LEFT_HAND_PINS, HEAD_PIN)
+        servos_manager.load_gestures(GESTURES_FOLDER)
         motors_manager = RobotMotorsManager(board, 
                                             LEFT_MOTOR_PINS, 
                                             RIGHT_MOTOR_PINS, 
                                             BACK_MOTOR_PINS, 
                                             FRONT_MOTOR_PINS)
     
-    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
         pixel = Robot(
             holistic=holistic,

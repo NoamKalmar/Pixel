@@ -1,0 +1,3 @@
+HANDS_DOWN = (90, 0, 0)
+HANDS_UP = (90, 180, 0)
+MUSCLE = (0, 90, 90)

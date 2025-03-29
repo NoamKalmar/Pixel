@@ -4,6 +4,9 @@ import threading
 from dataclasses import dataclass, field
 from collections.abc import Iterable
 from typing import Optional
+import glob
+from collections import defaultdict
+import json
 
 PROGRESS_THRESHOLD = 1
 
@@ -116,6 +119,7 @@ class RobotServosManager(ServosManager):
         super().__init__(arduino, right_hand_pins + left_hand_pins + (head_pin,), 90)
         self.servos[3].is_mirrored = True
         self.servos[5].is_mirrored = True
+        self.gestures = defaultdict(dict)
 
     def set_right_hand(self, angles: tuple[int]) -> None:
         self.write_servo(0, angles[0])
@@ -150,3 +154,28 @@ class RobotServosManager(ServosManager):
 
     def move_head(self, angle: int, rate: float = 0.02):
         self.move_servo(6, angle, rate)
+
+    def load_gestures(self, gestures_folder_path: str):
+        gesture_file_paths = glob.glob(f"{gestures_folder_path}/*.json")
+        for file_path in gesture_file_paths:
+            # convert {gestures_folder_path}/*.json to just the *
+            gesture_name = file_path.split("\\")[-1].split(".")[0]
+            with open(file_path) as file:
+                gesture = json.load(file)
+                self.gestures[gesture_name] = gesture
+    
+    def play_right_gesture(self, name: str):
+        gesture = self.gestures[name]
+        self.play_sequence(0, gesture["angle1"], gesture["rate"])
+        self.play_sequence(1, gesture["angle2"], gesture["rate"])
+        self.play_sequence(2, gesture["angle3"], gesture["rate"])
+        
+    def play_left_gesture(self, name: str):
+        gesture = self.gestures[name]
+        self.play_sequence(3, gesture["angle1"], gesture["rate"])
+        self.play_sequence(4, gesture["angle2"], gesture["rate"])
+        self.play_sequence(5, gesture["angle3"], gesture["rate"])
+    
+    def play_hands_gesture(self, name: str):
+        self.play_right_gesture(name)
+        self.play_left_gesture(name)
