@@ -2,13 +2,22 @@ from robot import Robot
 from time import sleep
 
 def main_show():
-    def dance(robot: Robot):
-        print("Dancing")
+    def setup(robot: Robot):
+        robot.servos_manager.move_hands(90, 0, 0)
+        sleep(5)
         return 1
+    def waking_up(robot: Robot):
+        # Head move
+        robot.servos_manager.move_head(0)
+        robot.servos_manager.wait_while_moving()
+        robot.servos_manager.move(90)
+        robot.servos_manager.wait_while_moving()
+        # Hands Move
+        return 2
     def interaction(robot: Robot):
         print("Interacting")
-        return 1
-    return [dance, interaction]
+        return -1
+    return [setup, waking_up]
 
 def square_show():
     def square(robot: Robot):

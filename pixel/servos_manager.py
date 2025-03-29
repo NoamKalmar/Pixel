@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from collections.abc import Iterable
 from typing import Optional
 
-PROGRESS_THRESHOLD = 0.5
+PROGRESS_THRESHOLD = 1
 
 @dataclass
 class Servo:
