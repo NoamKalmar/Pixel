@@ -13,6 +13,8 @@ MOVE_LEFT_COMMAND = "motors_manager.move_x(-255)"
 MOVE_RIGHT_COMMAND = "motors_manager.move_x(255)"
 MOVE_FORWARD_COMMAND = "motors_manager.move_y(255)"
 MOVE_BACKWARD_COMMAND = "motors_manager.move_y(-255)"
+TURN_LEFT_COMMAND = "motors_manager.turn(-175)"
+TURN_RIGHT_COMMAND = "motors_manager.turn(175)"
 STOP_MOVING_COMMAND = "motors_manager.stop_moving()"
 
 LOCALHOST_SERVER_ADDRESS = "127.0.0.1:1989"
@@ -41,7 +43,7 @@ class ControllerApp(tk.Tk):
         self.last_untriggred_id = None
         self.client = None
 
-        # Movement control using the arrows keys
+        self.current_move_command = None
     
     def add_ip_frame(self):
         self.ip_label = tk.Label(self.ip_frame, text="Enter IP")
@@ -73,7 +75,7 @@ class ControllerApp(tk.Tk):
         self.toggle_checkbutton = tk.Checkbutton(self.control_frame, variable=self.is_current_triggred)
         self.toggle_checkbutton.grid(row=1, column=1)
 
-        self.eval_button = tk.Button(self.control_frame, text="Evaluate!", command=self.add_command)
+        self.eval_button = tk.Button(self.control_frame, text="Evaluate!", command=self.send_command)
         self.eval_button.grid(pady=10)
 
         self.remove_all_button = tk.Button(
@@ -86,35 +88,35 @@ class ControllerApp(tk.Tk):
         self.left_button = tk.Button(
             self.control_frame, 
             text="Left", 
-            command=lambda: self.add_command(MOVE_LEFT_COMMAND, False)
+            command=lambda: self.send_command(MOVE_LEFT_COMMAND, False)
         )
         self.left_button.grid(row=1, column=2)
 
         self.right_button = tk.Button(
             self.control_frame, 
             text="Right",
-            command=lambda: self.add_command(MOVE_RIGHT_COMMAND, False)
+            command=lambda: self.send_command(MOVE_RIGHT_COMMAND, False)
         )
         self.right_button.grid(row=1, column=4)
 
         self.forward_button = tk.Button(
             self.control_frame, 
             text="Forward",
-            command=lambda: self.add_command(MOVE_FORWARD_COMMAND, False)
+            command=lambda: self.send_command(MOVE_FORWARD_COMMAND, False)
         )
         self.forward_button.grid(row=0, column=3)
 
         self.backward_button = tk.Button(
             self.control_frame, 
             text="Backward",
-            command=lambda: self.add_command(MOVE_BACKWARD_COMMAND, False)
+            command=lambda: self.send_command(MOVE_BACKWARD_COMMAND, False)
         )
         self.backward_button.grid(row=2, column=3)
 
         self.stop_button = tk.Button(
             self.control_frame, 
             text="Stop",
-            command=lambda: self.add_command(STOP_MOVING_COMMAND, False)
+            command=lambda: self.send_command(STOP_MOVING_COMMAND, False)
         )
         self.stop_button.grid(row=1, column=3, pady=10)
         
@@ -127,12 +129,14 @@ class ControllerApp(tk.Tk):
 
     def moving_mode_change(self):
         if not self.is_arrows_moving_mode:
-            self.bind("<Left>", lambda event: self.add_command(MOVE_LEFT_COMMAND, False))
-            self.bind("<Right>", lambda event: self.add_command(MOVE_RIGHT_COMMAND, False))
-            self.bind("<Up>", lambda event: self.add_command(MOVE_FORWARD_COMMAND, False))
-            self.bind("<Down>", lambda event: self.add_command(MOVE_BACKWARD_COMMAND, False))
-            self.bind("<KeyRelease>", lambda event: self.add_command(STOP_MOVING_COMMAND, False))
-            self.bind("<Return>", lambda event: self.add_command(STOP_MOVING_COMMAND, False))
+            self.bind("<Left>", lambda event: self.send_move_command(MOVE_LEFT_COMMAND))
+            self.bind("<Right>", lambda event: self.send_move_command(MOVE_RIGHT_COMMAND))
+            self.bind("<Up>", lambda event: self.send_move_command(MOVE_FORWARD_COMMAND))
+            self.bind("<Down>", lambda event: self.send_move_command(MOVE_BACKWARD_COMMAND))
+            self.bind("<Return>", lambda event: self.send_move_command(TURN_RIGHT_COMMAND))
+            self.bind("<Shift_R>", lambda event: self.send_move_command(TURN_LEFT_COMMAND))
+            self.bind("<space>", lambda event: self.send_move_command(STOP_MOVING_COMMAND))
+            self.bind("<KeyRelease>", lambda event: self.send_move_command(STOP_MOVING_COMMAND))
             self.is_arrows_moving_mode = True
         else:
             self.unbind("<Left>")
@@ -179,18 +183,27 @@ class ControllerApp(tk.Tk):
         
         self.after(100, self.update_data_table)
 
-    def add_command(self, command: str = None, is_triggred: bool = None):
+    def send_command(self, command: str = None, is_triggred: bool = None):
         if not self.client:
             return
         if not command:
             command = self.command_entry.get()
             is_triggred = self.is_current_triggred.get()
-
         command_id = self.client.send_command(command, is_triggred)
         if is_triggred:
             self.commands[command_id] = command
         else:
             self.last_untriggred_id = command_id
+
+    def send_move_command(self, command: str):
+        if self.current_move_command and self.current_move_command == command:
+            return
+        self.send_command(command, False)
+        if command == STOP_MOVING_COMMAND:
+            self.current_move_command = None
+        else:
+            self.current_move_command = command
+
 
     def remove_command(self, command_id: int):
         self.client.remove_command(command_id)
