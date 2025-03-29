@@ -2,6 +2,7 @@ import socket
 import threading
 from collections import defaultdict
 import client_protocol
+import time
 
 class Client(threading.Thread):
     def __init__(self, ip: str = None, port: int = None):
@@ -13,6 +14,8 @@ class Client(threading.Thread):
         self.socket = None
         self.current_command_id = 0
         self.connection_error = False
+        self.got_data_time = None
+        self.is_connected = False
 
     def set_address(self, ip, port):
         self.ip = ip
@@ -27,12 +30,21 @@ class Client(threading.Thread):
                 self.connection_error = True
             
             if self.connection_error:
-                return
+               return
             socket.setdefaulttimeout(5)
+            self.is_connected = True
             while self.running:
-                data = self.socket.recv(1024)
-                if data:
-                    self.commands_data = client_protocol.get_commands_data(data)
+                if self.got_data_time and time.time() - self.got_data_time < 2:
+                    self.is_connected = True
+                else:
+                    self.is_connected = False
+                try:
+                    data = self.socket.recv(1024)
+                    if data:
+                        self.commands_data = client_protocol.get_commands_data(data)
+                        self.got_data_time = time.time()
+                except:
+                    pass
 
     def send_command(self, command: str, is_toggled: bool):
         message = client_protocol.send_command(self.current_command_id, command, is_toggled)

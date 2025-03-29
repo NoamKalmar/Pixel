@@ -117,36 +117,36 @@ class RobotServosManager(ServosManager):
         self.servos[3].is_mirrored = True
         self.servos[5].is_mirrored = True
 
-    def set_right_hand(self, angle1: int, angle2: int, angle3: int) -> None:
-        self.write_servo(0, angle1)
-        self.write_servo(1, angle2)
-        self.write_servo(2, angle3)
+    def set_right_hand(self, angles: tuple[int]) -> None:
+        self.write_servo(0, angles[0])
+        self.write_servo(1, angles[1])
+        self.write_servo(2, angles[2])
 
-    def set_left_hand(self, angle1: int, angle2: int, angle3: int) -> None:
-        self.write_servo(3, angle1)
-        self.write_servo(4, angle2)
-        self.write_servo(5, angle3)
+    def set_left_hand(self, angles: tuple[int]) -> None:
+        self.write_servo(3, angles[0])
+        self.write_servo(4, angles[1])
+        self.write_servo(5, angles[2])
 
-    def set_hands(self, angle1: int, angle2: int, angle3: int) -> None:
-        self.set_right_hand(angle1, angle2, angle3)
-        self.set_left_hand(angle1, angle2, angle3)
+    def set_hands(self, angles: tuple[int]) -> None:
+        self.set_right_hand(angles)
+        self.set_left_hand(angles)
     
     def set_head(self, angle: int) -> None:
         self.write_servo(6, angle)
         
-    def move_right_hand(self, angle1: int, angle2: int, angle3: int, rate: float = 0.01) -> None:
-        self.move_servo(0, angle1, rate)
-        self.move_servo(1, angle2, rate)
-        self.move_servo(2, angle3, rate)
+    def move_right_hand(self, angles: tuple[int], rate: float = 0.01) -> None:
+        self.move_servo(0, angles[0], rate)
+        self.move_servo(1, angles[1], rate)
+        self.move_servo(2, angles[2], rate)
 
-    def move_left_hand(self, angle1: int, angle2: int, angle3: int, rate: float = 0.01) -> None:
-        self.move_servo(3, angle1, rate)
-        self.move_servo(4, angle2, rate)
-        self.move_servo(5, angle3, rate)
+    def move_left_hand(self, angles: tuple[int], rate: float = 0.01) -> None:
+        self.move_servo(3, angles[0], rate)
+        self.move_servo(4, angles[1], rate)
+        self.move_servo(5, angles[2], rate)
 
-    def move_hands(self, angle1: int, angle2: int, angle3: int, rate: float = 0.01) -> None:
-        self.move_right_hand(angle1, angle2, angle3, rate)
-        self.move_left_hand(angle1, angle2, angle3, rate)
+    def move_hands(self, angles: tuple[int], rate: float = 0.01) -> None:
+        self.move_right_hand(angles)
+        self.move_left_hand(angles)
 
     def move_head(self, angle: int, rate: float = 0.02):
         self.move_servo(6, angle, rate)

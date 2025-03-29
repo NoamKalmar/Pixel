@@ -8,6 +8,9 @@ from collections import defaultdict
 WIDTH = 600
 HEIGHT = 300
 
+GREEN = "#00ff1a"
+RED = "#ff1100"
+
 DEFAULT_TITLE = "Waiting for connection"
 MOVE_LEFT_COMMAND = "motors_manager.move_x(-255)"
 MOVE_RIGHT_COMMAND = "motors_manager.move_x(255)"
@@ -63,6 +66,8 @@ class ControllerApp(tk.Tk):
     def add_control_frame(self):
         self.disconnect_button = tk.Button(self, text="Disconnect", command=self.disconnect)
         self.disconnect_button.place(x=10, y=10, anchor="nw")
+        self.is_connected_label = tk.Label(self, text="Disconnected", bg=RED)
+        self.is_connected_label.place(x=5, y=45, anchor="nw")
         self.command_label = tk.Label(self.control_frame, text="Enter command")
         self.command_label.grid(row=0, column=0)
 
@@ -149,6 +154,10 @@ class ControllerApp(tk.Tk):
 
 
     def update_data_table(self):
+        if not self.client or not self.client.is_connected:
+            self.is_connected_label.config(text="Disconnected", bg=RED)
+        else:
+            self.is_connected_label.config(text="Connected", bg=GREEN)
         if not self.client:
             return
         for widget in self.table_frame.winfo_children():
@@ -219,7 +228,6 @@ class ControllerApp(tk.Tk):
             port = int(port)
             self.client = Client(address, port)
             self.client.start()
-            time.sleep(3)
             if self.client.connection_error:
                 raise
         except:
@@ -239,6 +247,7 @@ class ControllerApp(tk.Tk):
             self.client = None
         self.control_frame.pack_forget()
         self.table_frame.pack_forget()
+        self.is_connected_label.config(text="Disconnected", bg=RED)
         self.title(DEFAULT_TITLE)
         self.ip_frame.pack()
 
