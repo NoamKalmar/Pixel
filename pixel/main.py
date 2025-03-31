@@ -22,7 +22,7 @@ SERVER_ADDRESS = ("0.0.0.0", PORT)
 ROBOT_NAME = "pixel"
 
 BAUDRATE = 115200
-PORT = "COM3"
+PORT = "COM4"
 
 RIGHT_HAND_PINS = (2, 3, 4)
 LEFT_HAND_PINS = (5, 6, 7)
@@ -64,7 +64,7 @@ def main():
                                             BACK_MOTOR_PINS, 
                                             FRONT_MOTOR_PINS)
     
-    cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
         pixel = Robot(
             holistic=holistic,

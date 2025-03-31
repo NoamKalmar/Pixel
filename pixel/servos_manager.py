@@ -8,7 +8,7 @@ import glob
 from collections import defaultdict
 import json
 
-PROGRESS_THRESHOLD = 1
+PROGRESS_THRESHOLD = 2
 
 @dataclass
 class Servo:
@@ -57,12 +57,12 @@ class ServosManager:
         if rate > PROGRESS_THRESHOLD - 0.1:
             rate = PROGRESS_THRESHOLD - 0.1
         self._stop_moving(index)
-        self.servos[index].is_moving = True
         movement_thread = threading.Thread(target=self._play_sequence, args=(index, sequence, rate))
         self.servos[index].movement_thread = movement_thread
         movement_thread.start()
 
     def _play_sequence(self, index: int, sequence: Iterable, rate: float = 0.01) -> None:
+        self.servos[index].is_moving = True
         self.servos[index].stop_moving_event.clear()
         try:
             for angle in sequence:
@@ -74,7 +74,7 @@ class ServosManager:
         finally:
             self.servos[index].is_moving = False
             self.servos[index].stop_moving_event.set()
-            self.servos[index].movement_thread = None
+            # self.servos[index].movement_thread = None
     
     def move_servo(self, index: int, target_angle: int, rate: int = 0.01, step: int = 1):
         current_angle = self.servos[index].current_angle
@@ -87,12 +87,14 @@ class ServosManager:
             return
         self.servos[index].should_stop_moving = True
         while self.servos[index].is_moving:
-            if self._check_fix_move:
+            if self._check_fix_move(index):
                 break
             self.servos[index].stop_moving_event.wait(0.1) # Wait until the moving thread got the message and stopped
-        if self.servos[index].movement_thread is not None:
-            self.servos[index].movement_thread.join()
-            self.servos[index].movement_thread = None
+        self.servos[index].movement_thread = None
+            
+        # if self.servos[index].movement_thread is not None:
+        #     self.servos[index].movement_thread.join()
+        #     self.servos[index].movement_thread = None
         self.servos[index].should_stop_moving = False
     
     def wait_while_moving(self) -> None:
@@ -101,6 +103,9 @@ class ServosManager:
                 if self._check_fix_move(i):
                     break
                 servo.stop_moving_event.wait(0.1)
+            # if servo.movement_thread and servo.is_moving and not servo.stop_moving_event.is_set():
+            #     servo.movement_thread.join()
+            #     servo.movement_thread = None
 
     def _check_fix_move(self, index: int) -> bool:
         if time.time() - self.servos[index].last_progress > PROGRESS_THRESHOLD:
@@ -179,3 +184,21 @@ class RobotServosManager(ServosManager):
     def play_hands_gesture(self, name: str):
         self.play_right_gesture(name)
         self.play_left_gesture(name)
+    
+    def switch_move(self, angles1: tuple[int], angles2: tuple[int], rate: float = 0.01):
+        self.move_left_hand(angles1, rate=rate)
+        self.move_right_hand(angles2, rate=rate)
+        self.wait_while_moving()
+        self.move_left_hand(angles2, rate=rate)
+        self.move_right_hand(angles1, rate=rate)
+        self.wait_while_moving()
+
+    def move_right_path(self, angles_path: tuple[tuple[int]], rate=0.01):
+        for angles in angles_path:
+            self.move_right_hand(angles, rate)
+            self.wait_while_moving()
+    
+    def move_left_path(self, angles_path: tuple[tuple[int]], rate=0.01):
+        for angles in angles_path:
+            self.move_left_hand(angles, rate)
+            self.wait_while_moving()

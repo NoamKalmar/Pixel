@@ -35,7 +35,7 @@ class Robot:
         self.human_y = None
         self.human_z = None
         self.human_found = False
-        self.shows = defaultdict(dict) # {"name": {"steps": [show_step0, show_step1, ...], "current_step": current_step}}
+        self.shows = defaultdict(dict) # {"name": {"steps": [show_step0, show_step1, ...], "current_step": current_step, "data": {}}}
         self.emotion_recognition_model = emotion_recognition_model.load_model()
         self.emotion = None
         
@@ -67,6 +67,10 @@ class Robot:
         self.emotion = emotion_recognition_model.predict_emotion(
             self.emotion_recognition_model, face_landmarks.landmarks_to_list(self.landmarks["face"])
         )[0]
+
+    def get_emotion(self) -> int:
+        self.update_human_emotion()
+        return self.emotion
 
     def move_human_x(self, stop=False, max_right: float = 0.2, max_left: float = 0.8, velocity: int = 255):
         if self.human_x > max_left:
@@ -134,7 +138,7 @@ class Robot:
         a2 = points[3]
         b2 = points[4]
         c2 = points[5]
-        c2["z"] += 0.6
+        c2["z"] += 0.2
         
         d2 = {"x": a2["x"], "y": a2["y"] - 0.1, "z": a2["z"]}
         e2 = {"x": a2["x"] + 0.1, "y": a2["y"], "z": a2["z"]}
@@ -164,7 +168,7 @@ class Robot:
             self.angles[i].append(angle)
             self.angles[i] = self.angles[i][-average_of:]
             average_angle = sum(self.angles[i]) / len(self.angles[i])
-            self.hands_manager.write_servo(i, round(average_angle))
+            self.servos_manager.write_servo(i, round(average_angle))
 
     def record_gesture(self, name: str, gestures_folder: str, is_right_human_hand: bool = True, rate: int = 0.01) -> None:
         recording_thread = threading.Thread(target=self._record_gesture, args=(name, gestures_folder, is_right_human_hand, rate))
@@ -190,13 +194,20 @@ class Robot:
             show_steps = show_function()
             self.shows[show_name]["steps"] = show_steps
             self.shows[show_name]["current_step"] = -1
+            self.shows[show_name]["data"] = defaultdict(int)
 
     def shows_loop(self) -> None:
         for show in self.shows.values():
-            show_steps, current_step = show.values()
+            show_steps, current_step, _ = show.values()
             if current_step == -1:
                 continue
-            show["current_step"] = show_steps[current_step](self)
+            next_step = show_steps[current_step](self)
+            if next_step is None:
+                show["current_step"] += 1
+            elif next_step == -2:
+                return
+            else:
+                show["current_step"] = next_step
 
     def run_show(self, name: str) -> None:
         self.set_show_step(name, 0)

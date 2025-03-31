@@ -52,7 +52,10 @@ class RobotController:
             if not conn:
                 break
             message = server_protocol.send_data(self.commands)
+            # try:
             conn.sendall(message)
+            # except:
+                # pass
             for command in self.commands:
                 if not command.is_toggled and command.evaluated:
                     self.commands.remove(command)
@@ -61,7 +64,12 @@ class RobotController:
 
     def handle_client(self, conn: socket.socket):
         while self.running:
-            data = conn.recv(1024)
+            try:
+                data = conn.recv(1024)
+            except:
+                print("Client disconnected")
+                self.client_connected = False
+                return
             if not data:
                 print("Client disconnected")
                 self.client_connected = False

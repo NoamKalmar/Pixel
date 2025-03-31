@@ -76,3 +76,10 @@ class RobotMotorsManager(MotorsManager):
     
     def move_straight(self, velocity: int = 255):
         self.move_y(velocity)
+    
+    def turn_and_back(self, velocity: int = 200, turn_time: float = 1):
+        self.turn(velocity)
+        time.sleep(turn_time)
+        self.turn(-velocity)
+        time.sleep(turn_time)
+        self.stop_moving()
