@@ -33,10 +33,7 @@ RIGHT_MOTOR_PINS = (40, 42, 13)
 BACK_MOTOR_PINS = (34, 36, 12)
 FRONT_MOTOR_PINS = (24, 22, 10)
 
-SHOWS = {"main": shows.main_show, 
-         "square": shows.square_show,
-         "showcase": shows.showcase,
-         "muscle": shows.show_muscle}
+SHOWS = [shows.MAIN_SHOW, shows.test_show]
 
 GESTURES_FOLDER = "gestures"
 
@@ -72,7 +69,6 @@ def main():
             servos_manager=servos_manager, 
             name=ROBOT_NAME
         )
-
         pixel.load_shows(SHOWS)
         
         controller = RobotController(pixel, cap, SERVER_ADDRESS)

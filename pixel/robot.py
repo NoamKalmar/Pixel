@@ -14,6 +14,7 @@ from motors_manager import RobotMotorsManager
 import pose_landmarks
 import emotion_recognition_model
 import face_landmarks
+from show import Show
 
 class Robot:
     def __init__(
@@ -35,9 +36,11 @@ class Robot:
         self.human_y = None
         self.human_z = None
         self.human_found = False
-        self.shows = defaultdict(dict) # {"name": {"steps": [show_step0, show_step1, ...], "current_step": current_step, "data": {}}}
         self.emotion_recognition_model = emotion_recognition_model.load_model()
         self.emotion = None
+        self.shows = list[Show]
+        self.show_runner_thread = None
+        self.stop_show_event = threading.Event()
         
     def loop(self, image: np.ndarray, display_frame: bool, max_distance: int = None) -> tuple:
         covered_image = image.copy()
@@ -45,8 +48,6 @@ class Robot:
         modified_image = cv2.flip(modified_image, 1)
         if display_frame:
             cv2.imshow(self.name, modified_image)
-
-        self.shows_loop()
             
         if self.landmarks["pose"] is None:
             self.human_found = False
@@ -189,41 +190,36 @@ class Robot:
         with open(f"{gestures_folder}/{name}.json", "w") as file:
             json.dump(gesture, file)
 
-    def load_shows(self, shows: dict[str, Callable]) -> None:
-        for show_name, show_function in shows.items():
-            show_steps = show_function()
-            self.shows[show_name]["steps"] = show_steps
-            self.shows[show_name]["current_step"] = -1
-            self.shows[show_name]["data"] = defaultdict(int)
-
-    def shows_loop(self) -> None:
-        for show in self.shows.values():
-            show_steps, current_step, _ = show.values()
-            if current_step == -1:
-                continue
-            next_step = show_steps[current_step](self)
-            if next_step is None:
-                show["current_step"] += 1
-            elif next_step == -2:
-                return
-            else:
-                show["current_step"] = next_step
-
+    def load_shows(self, shows: list[Show]) -> None:
+        self.shows = shows
+    
     def run_show(self, name: str) -> None:
-        self.set_show_step(name, 0)
+        show_to_run = None
+        for show in self.shows:
+            if show.name == name:
+                show_to_run = show
+        self.end_show()
+        self.show_runner_thread = threading.Thread(target=self._show_runner, args=(show_to_run,))
+        self.show_runner_thread.start()
 
-    def set_show_step(self, name: str, step: int) -> None:
-        self.shows[name]["current_step"] = step
+    def _show_runner(self, show: Show) -> None:
+        for step in show.steps:
+            if self.stop_show_event.is_set():
+                break
+            # If step is a function then call it
+            # If step is  a tuple call the function (the first value) for the specified time (the second value)
+            if isinstance(step, Callable):
+                step(self)
+            elif isinstance(step, tuple):
+                step_func, step_time = step
+                show.start_step_time = time.time()
+                while time.time() - show.start_step_time < step_time:
+                    step_func(self)
 
-    def end_shows(self) -> None:
-        for show_name in self.shows.keys():
-            self.set_show_step(show_name, -1)
-
-    def end_show(self, name: str) -> None:
-        self.set_show_step(name, -1)
-
-    def next_step(self, name: str) -> None:
-        self.set_show_step(name, self.shows[name]["current_step"] + 1)
-
-    def last_step(self, name: str) -> None:
-        self.set_show_step(name, self.shows[name]["current_step"] - 1)
+    def end_show(self) -> None:
+        if self.show_runner_thread is None:
+            return
+        self.stop_show_event.set()
+        self.show_runner_thread.join()
+        self.show_runner_thread = None
+        self.stop_show_event.clear()
