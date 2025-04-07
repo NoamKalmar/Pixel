@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import socket
-from client import Client
+from client import Client, IPFinder
 import time
 from collections import defaultdict
 
@@ -21,6 +21,7 @@ TURN_RIGHT_COMMAND = "motors_manager.turn(175)"
 STOP_MOVING_COMMAND = "motors_manager.stop_moving()"
 
 LOCALHOST_SERVER_ADDRESS = "127.0.0.1:1989"
+BROADCAST_PORT = 1990
 
 class ControllerApp(tk.Tk):
     def __init__(self):
@@ -30,10 +31,12 @@ class ControllerApp(tk.Tk):
 
         self.is_current_triggred = tk.BooleanVar()
         self.is_arrows_moving_mode = False
+        self.current_move_command = None
 
         self.ip_frame = tk.Frame(self)
         self.ip_frame.pack()
         self.add_ip_frame()
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         self.control_frame = tk.Frame(self)
         # self.control_frame.pack()
@@ -44,9 +47,11 @@ class ControllerApp(tk.Tk):
         self.commands = defaultdict(str) # {id: command_str}
         self.untriggred_data_label = None
         self.last_untriggred_id = None
+        
         self.client = None
-
-        self.current_move_command = None
+        self.ip_finder = IPFinder()
+        self.last_found_ip = None
+        self.search_robot()
     
     def add_ip_frame(self):
         self.ip_label = tk.Label(self.ip_frame, text="Enter IP")
@@ -54,14 +59,35 @@ class ControllerApp(tk.Tk):
         self.ip_entry = tk.Entry(self.ip_frame)
         self.ip_entry.pack()
         self.connect_button = tk.Button(self.ip_frame, text="Connect!", command=self.connect)
-        self.connect_button.pack(pady=10)
+        self.connect_button.pack(pady=5)
         self.localhost_button = tk.Button(
             self.ip_frame, 
             text="Connect to localhost", 
             command=lambda: self.connect(LOCALHOST_SERVER_ADDRESS)
         )
+        self.localhost_button.pack(pady=5)
+        self.found_ip_button = tk.Button(
+            self.ip_frame,
+            text="Found: "
+        )
+        self.found_ip_button.pack(pady=5)
         self.focus_set()
-        self.localhost_button.pack()
+    
+    def search_robot(self):
+        found_ip = self.ip_finder.get_ip()
+        if found_ip is None:
+            self.found_ip_button.config(
+                text=f"Found: ",
+                command=False
+            )
+        else:
+            self.found_ip_button.config(
+                text=f"Found: {found_ip}", 
+                command=lambda found_ip=found_ip: self.connect(found_ip)
+            )
+
+        if not self.client:
+            self.after(100, self.search_robot)
 
     def add_control_frame(self):
         self.disconnect_button = tk.Button(self, text="Disconnect", command=self.disconnect)
@@ -250,17 +276,18 @@ class ControllerApp(tk.Tk):
         self.is_connected_label.config(text="Disconnected", bg=RED)
         self.title(DEFAULT_TITLE)
         self.ip_frame.pack()
+        self.search_robot()
 
     def on_closing(self):
         if self.client:
             self.client.running = False
             self.client.join()
+        self.ip_finder.close()
         self.destroy()
 
 
 def main():
     app = ControllerApp()
-    app.protocol("WM_DELETE_WINDOW", app.on_closing)
     app.mainloop()
 
 if __name__ == "__main__":

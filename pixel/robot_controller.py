@@ -8,18 +8,27 @@ import server_protocol
 import time
 import numpy as np
 
+SERVER_PORT = 1989
+SERVER_ADDRESS = ("0.0.0.0", SERVER_PORT)
+
+BROADCAST_PORT = 1990
+BROADCAST_ADDRESS = ("255.255.255.255", BROADCAST_PORT)
+
 class RobotController:
-    def __init__(self, robot: Robot, cap: cv2.VideoCapture, server_address: tuple):
+    def __init__(self, robot: Robot, cap: cv2.VideoCapture):
         self.robot = robot
         self.cap = cap
-        self.server_address = server_address
         self.running = True
         self.client_connected = False
         self.commands = []
         self.server_thread = threading.Thread(target=self.server_loop, daemon=True)
+        self.broadcast_ip_thread = threading.Thread(target=self.broadcast_ip, daemon=True)
+        self_ip = socket.gethostbyname(socket.gethostname())
+        self.self_address = (self_ip, SERVER_PORT)
 
     def start(self):
         self.server_thread.start()
+        self.broadcast_ip_thread.start()
         self.robot_loop()
 
     def robot_loop(self):
@@ -45,17 +54,21 @@ class RobotController:
             command.evaluated = True
             command.return_value = value
 
-            # print(command.return_value)
+    def broadcast_ip(self):
+        while self.running:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as broadcast_socket:
+                broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+                while not self.client_connected:
+                    message = server_protocol.broadcast_ip(self.self_address)
+                    broadcast_socket.sendto(message, BROADCAST_ADDRESS)
+                    time.sleep(1)
 
     def send_live_data(self, conn: socket.socket):
         while self.running and self.client_connected:
             if not conn:
                 break
             message = server_protocol.send_data(self.commands)
-            # try:
             conn.sendall(message)
-            # except:
-                # pass
             for command in self.commands:
                 if not command.is_toggled and command.evaluated:
                     self.commands.remove(command)
@@ -101,7 +114,7 @@ class RobotController:
 
     def server_loop(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-            server_socket.bind(self.server_address)
+            server_socket.bind(SERVER_ADDRESS)
             server_socket.listen(1)
             while self.running:
                 conn, addr = server_socket.accept()

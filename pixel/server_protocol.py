@@ -31,3 +31,9 @@ def send_data(commands: list[Command]):
         message += f"{command.command_id};{command.return_value}//"
     message += "#"
     return bytes(message, "utf-8")
+
+# pixel-<self_ip>:<self_port>
+def broadcast_ip(self_address: tuple):
+    ip, port = self_address
+    message = f"pixel-{ip}:{port}"
+    return bytes(message, "utf-8")

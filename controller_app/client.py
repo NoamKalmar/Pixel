@@ -4,6 +4,9 @@ from collections import defaultdict
 import client_protocol
 import time
 
+BROADCAST_LISTENER_PORT = 1990
+BROADCAST_LISTENER_ADDRESS = ("0.0.0.0", BROADCAST_LISTENER_PORT)
+
 class Client(threading.Thread):
     def __init__(self, ip: str = None, port: int = None):
         super().__init__(daemon=False)
@@ -59,3 +62,31 @@ class Client(threading.Thread):
     def remove_all_commands(self):
         message = client_protocol.remove_all_commands()
         self.socket.sendall(message)
+
+
+class IPFinder:
+    def __init__(self):
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket.bind(BROADCAST_LISTENER_ADDRESS)
+        self.socket.settimeout(0.1)
+        self.last_ip = None
+        self.last_ip_time = 0
+
+    def get_ip(self, max_time: float = 2) -> None | str:
+        self._update_ip()
+        if time.time() - self.last_ip_time < max_time:
+            return self.last_ip
+        return None
+
+    def _update_ip(self) -> None:
+        try:
+            data = self.socket.recv(1024)
+            server_ip = client_protocol.get_server_ip(data)
+            self.last_ip = server_ip
+            self.last_ip_time = time.time()
+        except TimeoutError:
+            pass
+        
+
+    def close(self) -> None:
+        self.socket.close()
