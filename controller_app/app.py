@@ -32,6 +32,7 @@ class ControllerApp(tk.Tk):
         self.is_current_triggred = tk.BooleanVar()
         self.is_arrows_moving_mode = False
         self.current_move_command = None
+        self.focus_set()
 
         self.ip_frame = tk.Frame(self)
         self.ip_frame.pack()
@@ -51,14 +52,13 @@ class ControllerApp(tk.Tk):
         self.client = None
         self.ip_finder = IPFinder()
         self.last_found_ip = None
-        self.search_robot()
     
     def add_ip_frame(self):
         self.ip_label = tk.Label(self.ip_frame, text="Enter IP")
         self.ip_label.pack()
         self.ip_entry = tk.Entry(self.ip_frame)
         self.ip_entry.pack()
-        self.connect_button = tk.Button(self.ip_frame, text="Connect!", command=self.connect)
+        self.connect_button = tk.Button(self.ip_frame, text="Connect", command=self.connect)
         self.connect_button.pack(pady=5)
         self.localhost_button = tk.Button(
             self.ip_frame, 
@@ -66,28 +66,19 @@ class ControllerApp(tk.Tk):
             command=lambda: self.connect(LOCALHOST_SERVER_ADDRESS)
         )
         self.localhost_button.pack(pady=5)
-        self.found_ip_button = tk.Button(
+        self.magic_connect_button = tk.Button(
             self.ip_frame,
-            text="Found: "
+            text="Magic connect",
+            command=self.magic_connect
         )
-        self.found_ip_button.pack(pady=5)
-        self.focus_set()
-    
-    def search_robot(self):
-        found_ip = self.ip_finder.get_ip()
-        if found_ip is None:
-            self.found_ip_button.config(
-                text=f"Found: ",
-                command=False
-            )
-        else:
-            self.found_ip_button.config(
-                text=f"Found: {found_ip}", 
-                command=lambda found_ip=found_ip: self.connect(found_ip)
-            )
+        self.magic_connect_button.pack(pady=5)
 
-        if not self.client:
-            self.after(100, self.search_robot)
+    def magic_connect(self):
+        found_ip = self.ip_finder.get_ip()
+        if found_ip:
+            self.connect(found_ip)
+        else:
+            messagebox.showerror("Error", "Robot not found")
 
     def add_control_frame(self):
         self.disconnect_button = tk.Button(self, text="Disconnect", command=self.disconnect)
@@ -115,48 +106,13 @@ class ControllerApp(tk.Tk):
             command=self.remove_all
         )
         self.remove_all_button.grid(pady=10)
-
-        self.left_button = tk.Button(
-            self.control_frame, 
-            text="Left", 
-            command=lambda: self.send_command(MOVE_LEFT_COMMAND, False)
-        )
-        self.left_button.grid(row=1, column=2)
-
-        self.right_button = tk.Button(
-            self.control_frame, 
-            text="Right",
-            command=lambda: self.send_command(MOVE_RIGHT_COMMAND, False)
-        )
-        self.right_button.grid(row=1, column=4)
-
-        self.forward_button = tk.Button(
-            self.control_frame, 
-            text="Forward",
-            command=lambda: self.send_command(MOVE_FORWARD_COMMAND, False)
-        )
-        self.forward_button.grid(row=0, column=3)
-
-        self.backward_button = tk.Button(
-            self.control_frame, 
-            text="Backward",
-            command=lambda: self.send_command(MOVE_BACKWARD_COMMAND, False)
-        )
-        self.backward_button.grid(row=2, column=3)
-
-        self.stop_button = tk.Button(
-            self.control_frame, 
-            text="Stop",
-            command=lambda: self.send_command(STOP_MOVING_COMMAND, False)
-        )
-        self.stop_button.grid(row=1, column=3, pady=10)
         
         self.arrows_moving_label = tk.Label(self.control_frame, text="Enable arrows moving")
-        self.arrows_moving_label.grid(row=0, column=5)
+        self.arrows_moving_label.grid(row=0, column=2, padx=20)
 
         self.arrows_moving_checkbutton = tk.Checkbutton(self.control_frame, 
                                                         command=self.moving_mode_change)
-        self.arrows_moving_checkbutton.grid(row=1, column=5)
+        self.arrows_moving_checkbutton.grid(row=1, column=2)
 
     def moving_mode_change(self):
         if not self.is_arrows_moving_mode:
@@ -276,7 +232,6 @@ class ControllerApp(tk.Tk):
         self.is_connected_label.config(text="Disconnected", bg=RED)
         self.title(DEFAULT_TITLE)
         self.ip_frame.pack()
-        self.search_robot()
 
     def on_closing(self):
         if self.client:

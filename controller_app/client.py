@@ -69,24 +69,22 @@ class IPFinder:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind(BROADCAST_LISTENER_ADDRESS)
         self.socket.settimeout(0.1)
-        self.last_ip = None
-        self.last_ip_time = 0
 
     def get_ip(self, max_time: float = 2) -> None | str:
-        self._update_ip()
-        if time.time() - self.last_ip_time < max_time:
-            return self.last_ip
+        start_time = time.time()
+        while time.time() - start_time < max_time:
+            server_ip = self._find_ip()
+            if server_ip:
+                return server_ip
         return None
 
-    def _update_ip(self) -> None:
+    def _find_ip(self) -> None | str:
         try:
             data = self.socket.recv(1024)
             server_ip = client_protocol.get_server_ip(data)
-            self.last_ip = server_ip
-            self.last_ip_time = time.time()
+            return server_ip
         except TimeoutError:
-            pass
-        
+            return None
 
     def close(self) -> None:
         self.socket.close()
