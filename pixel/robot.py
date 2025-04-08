@@ -12,7 +12,7 @@ import detect_landmarks
 from servos_manager import RobotServosManager
 from motors_manager import RobotMotorsManager
 import pose_landmarks
-import emotion_recognition_model
+import pixel.emotion_recognition as emotion_recognition
 import face_landmarks
 from show import Show
 
@@ -32,22 +32,21 @@ class Robot:
         self.angles = [[] for _ in range(7)]
         self.unwanted_boxes = []
         self.landmarks = {}
+        self.current_frame = None
         self.human_x = None
         self.human_y = None
         self.human_z = None
         self.human_found = False
-        self.emotion_recognition_model = emotion_recognition_model.load_model()
-        self.emotion = None
+        self.emotion_model = emotion_recognition.load_model()
         self.shows = list[Show]
         self.show_runner_thread = None
         self.stop_show_event = threading.Event()
         
-    def loop(self, image: np.ndarray, display_frame: bool, max_distance: int = None) -> tuple:
-        covered_image = image.copy()
-        self.landmarks, modified_image = detect_landmarks.holistic_detect(self.holistic, covered_image)
+    def loop(self, frame: np.ndarray, display_frame: bool) -> tuple:
+        self.landmarks, self.currentr_frame = detect_landmarks.holistic_detect(self.holistic, frame)
         modified_image = cv2.flip(modified_image, 1)
         if display_frame:
-            cv2.imshow(self.name, modified_image)
+            cv2.imshow(self.name, self.current_frame)
             
         if self.landmarks["pose"] is None:
             self.human_found = False
@@ -57,21 +56,18 @@ class Robot:
 
         return (0, None)
     
-    def update_human_location(self):
+    def update_human_location(self) -> None:
         self.human_x = self.landmarks["pose"][0].x
         self.human_y = self.landmarks["pose"][0].y
         self.human_z = self.landmarks["pose"][0].z
 
-    def update_human_emotion(self):
+    def get_emotion(self) -> None:
         if not self.landmarks["face"]:
             return
-        self.emotion = emotion_recognition_model.predict_emotion(
-            self.emotion_recognition_model, face_landmarks.landmarks_to_list(self.landmarks["face"])
+        emotion = emotion_recognition.predict_emotion(
+            self.emotion_model, face_landmarks.landmarks_to_list(self.landmarks["face"])
         )[0]
-
-    def get_emotion(self) -> int:
-        self.update_human_emotion()
-        return self.emotion
+        return emotion
 
     def move_human_x(self, stop=False, max_right: float = 0.2, max_left: float = 0.8, velocity: int = 255):
         if self.human_x > max_left:
@@ -96,9 +92,6 @@ class Robot:
         return 0
     
     def follow_human(self) -> int:
-        # if not self.human_found:
-        #     self.motors_manager.turn(150)
-        #     return 0
         finished_x = self.move_human_x()
         if not finished_x:
             return 1
@@ -176,11 +169,11 @@ class Robot:
         recording_thread.start()
 
     def _record_gesture(self, name: str, gestures_folder: str, is_right_human_hand: bool = True, rate: int = 0.01) -> None:
-        while not self.landmarks["face"] and self.emotion != 0:
+        while not self.landmarks["face"] and self.get_emotion() != 0:
             pass
         time.sleep(3)
         gesture = {"rate": rate, "angle1": [], "angle2": [], "angle3": []}
-        while self.emotion != 0:
+        while self.get_emotion() != 0:
             self.update_human_emotion()
             angles = self.calculate_angles()
             # Work for both hands
