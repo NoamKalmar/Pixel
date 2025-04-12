@@ -4,21 +4,13 @@ import socket
 from client import Client, IPFinder
 import time
 from collections import defaultdict
+from command_consts import *
 
 WIDTH = 600
 HEIGHT = 300
 
 GREEN = "#00ff1a"
 RED = "#ff1100"
-
-DEFAULT_TITLE = "Waiting for connection"
-MOVE_LEFT_COMMAND = "motors_manager.move_x(-255)"
-MOVE_RIGHT_COMMAND = "motors_manager.move_x(255)"
-MOVE_FORWARD_COMMAND = "motors_manager.move_y(255)"
-MOVE_BACKWARD_COMMAND = "motors_manager.move_y(-255)"
-TURN_LEFT_COMMAND = "motors_manager.turn(-175)"
-TURN_RIGHT_COMMAND = "motors_manager.turn(175)"
-STOP_MOVING_COMMAND = "motors_manager.stop_moving()"
 
 LOCALHOST_SERVER_ADDRESS = "127.0.0.1:1989"
 BROADCAST_PORT = 1990
@@ -106,13 +98,24 @@ class ControllerApp(tk.Tk):
             command=self.remove_all
         )
         self.remove_all_button.grid(pady=10)
-        
+
         self.arrows_moving_label = tk.Label(self.control_frame, text="Enable arrows moving")
         self.arrows_moving_label.grid(row=0, column=2, padx=20)
 
         self.arrows_moving_checkbutton = tk.Checkbutton(self.control_frame, 
                                                         command=self.moving_mode_change)
         self.arrows_moving_checkbutton.grid(row=1, column=2)
+
+        self.servo_index_slider = tk.Scale(self.control_frame, to=5, orient="horizontal")
+        self.servo_index_slider.grid(row=2, column=2)
+
+        self.servos_control_slider = tk.Scale(
+            self.control_frame, 
+            to=180, 
+            orient="horizontal", 
+            command=self.send_servos_control_command
+        )
+        self.servos_control_slider.grid(row=3, column=2)
 
     def moving_mode_change(self):
         if not self.is_arrows_moving_mode:
@@ -194,7 +197,11 @@ class ControllerApp(tk.Tk):
             self.current_move_command = None
         else:
             self.current_move_command = command
-
+    
+    def send_servos_control_command(self, angle: int):
+        servo_index = self.servo_index_slider.get()
+        command = SERVO_CONTROL_COMMAND.replace("<index>", str(servo_index)).replace("<angle>", str(angle))
+        self.client.send_command(command, False)
 
     def remove_command(self, command_id: int):
         self.client.remove_command(command_id)
