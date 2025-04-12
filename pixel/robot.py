@@ -12,7 +12,7 @@ import detect_landmarks
 from servos_manager import RobotServosManager
 from motors_manager import RobotMotorsManager
 import pose_landmarks
-import pixel.emotion_recognition as emotion_recognition
+import emotion_recognition as emotion_recognition
 import face_landmarks
 from show import Show
 
@@ -43,8 +43,8 @@ class Robot:
         self.stop_show_event = threading.Event()
         
     def loop(self, frame: np.ndarray, display_frame: bool) -> tuple:
-        self.landmarks, self.currentr_frame = detect_landmarks.holistic_detect(self.holistic, frame)
-        modified_image = cv2.flip(modified_image, 1)
+        self.landmarks, self.current_frame = detect_landmarks.holistic_detect(self.holistic, frame)
+        self.current_framemodified_image = cv2.flip(self.current_frame, 1)
         if display_frame:
             cv2.imshow(self.name, self.current_frame)
             
