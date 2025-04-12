@@ -1,5 +1,4 @@
 import socket
-from collections import defaultdict
 
 # -;-
 def remove_all_commands():
@@ -16,8 +15,8 @@ def send_remove_command(command_id: int) -> str:
     return bytes(message, "utf-8")
 
 # id;data//id;data//...#
-def get_commands_data(data: bytes) -> defaultdict:
-    commands_data = defaultdict(str)
+def get_commands_data(data: bytes) -> dict:
+    commands_data = {}
 
     data = data.decode()
     data = data[:data.find("#")]

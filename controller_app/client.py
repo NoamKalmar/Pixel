@@ -1,6 +1,5 @@
 import socket
 import threading
-from collections import defaultdict
 import client_protocol
 import time
 
@@ -13,7 +12,7 @@ class Client(threading.Thread):
         self.ip = ip
         self.port = port
         self.running = True
-        self.commands_data = defaultdict(str)
+        self.commands_data = {}
         self.socket = None
         self.current_command_id = 0
         self.connection_error = False

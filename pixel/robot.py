@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 import math
 import numpy as np
-from collections import defaultdict
 from collections.abc import Callable
 import threading
 import json

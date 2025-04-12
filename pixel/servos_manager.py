@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 from collections.abc import Iterable
 from typing import Optional
 import glob
-from collections import defaultdict
 import json
 
 PROGRESS_THRESHOLD = 2
@@ -124,7 +123,7 @@ class RobotServosManager(ServosManager):
         super().__init__(arduino, right_hand_pins + left_hand_pins + (head_pin,), 90)
         self.servos[3].is_mirrored = True
         self.servos[5].is_mirrored = True
-        self.gestures = defaultdict(dict)
+        self.gestures = {}
 
     def set_right_hand(self, angles: tuple[int]) -> None:
         self.write_servo(0, angles[0])

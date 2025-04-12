@@ -3,7 +3,6 @@ from tkinter import messagebox
 import socket
 from client import Client, IPFinder
 import time
-from collections import defaultdict
 from command_consts import *
 
 WIDTH = 600
