@@ -1,0 +1,1 @@
+pyinstaller app.py --windowed --onefile -i "icon.png" -n "Pixel Controller"
