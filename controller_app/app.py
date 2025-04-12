@@ -37,7 +37,7 @@ class ControllerApp(tk.Tk):
 
         self.table_frame = tk.Frame(self)
 
-        self.commands = defaultdict(str) # {id: command_str}
+        self.toggled_commands = {} # {id: command_str}
         self.untriggred_data_label = None
         self.last_untriggred_id = None
         
@@ -159,9 +159,9 @@ class ControllerApp(tk.Tk):
 
         for row, (key, value) in enumerate(self.client.commands_data.items()):
             command_id = int(key)
-            if command_id == self.last_untriggred_id:
+            if not command_id in self.toggled_commands.keys():
                 continue
-            command = self.commands[command_id]
+            command = self.toggled_commands[command_id]
             remove_button = tk.Button(
                 self.table_frame, 
                 text="X", 
@@ -185,7 +185,7 @@ class ControllerApp(tk.Tk):
             is_triggred = self.is_current_triggred.get()
         command_id = self.client.send_command(command, is_triggred)
         if is_triggred:
-            self.commands[command_id] = command
+            self.toggled_commands[command_id] = command
         else:
             self.last_untriggred_id = command_id
 

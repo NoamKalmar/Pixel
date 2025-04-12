@@ -1,0 +1,9 @@
+DEFAULT_TITLE = "Waiting for connection"
+MOVE_LEFT_COMMAND = "motors_manager.move_x(-255)"
+MOVE_RIGHT_COMMAND = "motors_manager.move_x(255)"
+MOVE_FORWARD_COMMAND = "motors_manager.move_y(255)"
+MOVE_BACKWARD_COMMAND = "motors_manager.move_y(-255)"
+TURN_LEFT_COMMAND = "motors_manager.turn(-175)"
+TURN_RIGHT_COMMAND = "motors_manager.turn(175)"
+STOP_MOVING_COMMAND = "motors_manager.stop_moving()"
+SERVO_CONTROL_COMMAND = "servos_manager.write_servo(<index>, <angle>)" # replace <index> with index and <angle> with angle
