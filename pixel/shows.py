@@ -1,7 +1,6 @@
-from robot import Robot
+from robot import Robot, Show
 from time import sleep, time
 from angle_consts import *
-from show import Show
 
 def test(robot: Robot):
     print("Hello, World!")

@@ -1,13 +1,9 @@
-import time
 import sys
 import cv2
 import mediapipe as mp
 from pyfirmata import ArduinoMega
 
-import detect_landmarks
-from servos_manager import RobotServosManager
-from motors_manager import RobotMotorsManager
-from robot import Robot
+from robot import Robot, RobotMotorsManager, RobotServosManager
 from robot_controller import RobotController
 import shows    
 
@@ -32,8 +28,6 @@ FRONT_MOTOR_PINS = (24, 22, 10)
 
 SHOWS = [shows.MAIN_SHOW, shows.test_show]
 
-GESTURES_FOLDER = "gestures"
-
 mp_holistic = mp.solutions.holistic
 
 def read_emotion_videos(paths: list) -> list:
@@ -51,7 +45,6 @@ def main():
     if len(sys.argv) < 2 or sys.argv[1] != "sim":
         board = ArduinoMega(PORT)
         servos_manager = RobotServosManager(board, RIGHT_HAND_PINS, LEFT_HAND_PINS, HEAD_PIN)
-        servos_manager.load_gestures(GESTURES_FOLDER)
         motors_manager = RobotMotorsManager(board, 
                                             LEFT_MOTOR_PINS, 
                                             RIGHT_MOTOR_PINS, 

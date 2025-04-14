@@ -1,6 +1,6 @@
 import pandas as pd
 import math
-import detect_landmarks
+from landmarks import detect_landmarks
 
 def save_face_landmarks(holistic, videos: list, y_column: str, path: str, landmarks_num: int=1404):
     face_data = []

@@ -2,26 +2,25 @@ import numpy as np
 import cv2
 import math
 import numpy as np
-from collections.abc import Callable
+from typing import Optional, Callable
 import threading
 import json
 import time
+import mediapipe as mp
 
-import detect_landmarks
-from servos_manager import RobotServosManager
-from motors_manager import RobotMotorsManager
-import pose_landmarks
-import emotion_recognition as emotion_recognition
-import face_landmarks
-from show import Show
+from landmarks import detect_landmarks, pose_landmarks, face_landmarks
+from robot.servos_manager import RobotServosManager
+from robot.motors_manager import RobotMotorsManager
+from robot.show import Show
+from landmarks import emotion_recognition
 
 class Robot:
     def __init__(
             self, 
-            holistic,
-            servos_manager: RobotServosManager | None,
-            motors_manager: RobotMotorsManager | None,
-            name="Robot"
+            holistic: mp.solutions.holistic,
+            servos_manager: Optional[RobotServosManager],
+            motors_manager: Optional[RobotMotorsManager],
+            name: str = "Robot"
     ):
         self.holistic = holistic
         self.name = name

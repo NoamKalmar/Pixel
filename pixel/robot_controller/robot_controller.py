@@ -1,12 +1,10 @@
-from dataclasses import dataclass
 import threading
 import socket
 import cv2
 from robot import Robot
-from command import Command
-import server_protocol
+from robot_controller.command import Command
+import robot_controller.server_protocol as protocol
 import time
-import numpy as np
 
 SERVER_PORT = 1989
 SERVER_ADDRESS = ("0.0.0.0", SERVER_PORT)
@@ -59,7 +57,7 @@ class RobotController:
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as broadcast_socket:
                 broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
                 while not self.client_connected:
-                    message = server_protocol.broadcast_ip(self.self_address)
+                    message = protocol.broadcast_ip(self.self_address)
                     broadcast_socket.sendto(message, BROADCAST_ADDRESS)
                     time.sleep(1)
 
@@ -67,7 +65,7 @@ class RobotController:
         while self.running and self.client_connected:
             if not conn:
                 break
-            message = server_protocol.send_data(self.commands)
+            message = protocol.send_data(self.commands)
             conn.sendall(message)
             for command in self.commands:
                 if not command.is_toggled and command.evaluated:
@@ -88,7 +86,7 @@ class RobotController:
                 self.client_connected = False
                 return
 
-            protocol_data = server_protocol.get_command(data)
+            protocol_data = protocol.get_command(data)
             print(protocol_data)
             if protocol_data == None:
                 self.commands = []

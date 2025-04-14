@@ -1,4 +1,4 @@
-from command import Command
+from robot_controller.command import Command
 
 # Returns Command - Add new command
 # Returns int - Remove command by id
