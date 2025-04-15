@@ -26,7 +26,6 @@ class Robot:
         self.name = name
         self.servos_manager = servos_manager
         self.motors_manager = motors_manager
-        self.head_angle = 90
         self.angles = [[] for _ in range(7)]
         self.unwanted_boxes = []
         self.landmarks = {}
@@ -41,7 +40,10 @@ class Robot:
         self.stop_show_event = threading.Event()
         
     def loop(self, frame: np.ndarray, display_frame: bool) -> tuple:
+        if frame is None:
+            return
         self.landmarks, self.current_frame = detect_landmarks.holistic_detect(self.holistic, frame)
+
         self.current_framemodified_image = cv2.flip(self.current_frame, 1)
         if display_frame:
             cv2.imshow(self.name, self.current_frame)
@@ -145,12 +147,7 @@ class Robot:
         angle5 = 180 - pose_landmarks.vectors_angle([a2, b2, d2])
         angle6 = 180 - pose_landmarks.vectors_angle([b2, a2, c2])
 
-        if self.landmarks["pose"][0].x < 0.3:
-            self.head_angle += 1
-        elif self.landmarks["pose"][0].x > 0.7:
-            self.head_angle -= 1
-
-        return [angle1, angle2, angle3, angle4, angle5, angle6, self.head_angle]
+        return [angle1, angle2, angle3, angle4, angle5, angle6]
 
     def mimic_movements(self, average_of: int=10) -> None:
         if not self.landmarks["pose"]:
@@ -184,17 +181,20 @@ class Robot:
     def load_shows(self, shows: list[Show]) -> None:
         self.shows = shows
     
-    def run_show(self, name: str) -> None:
+    def run_show(self, name: str, start_step: int = 0) -> None:
         show_to_run = None
         for show in self.shows:
             if show.name == name:
                 show_to_run = show
         self.end_show()
-        self.show_runner_thread = threading.Thread(target=self._show_runner, args=(show_to_run,))
+        self.show_runner_thread = threading.Thread(
+            target=self._show_runner, 
+            args=(show_to_run, start_step)
+        )
         self.show_runner_thread.start()
 
-    def _show_runner(self, show: Show) -> None:
-        for step in show.steps:
+    def _show_runner(self, show: Show, start_step: int = 0) -> None:
+        for step in show.steps[start_step:]:
             if self.stop_show_event.is_set():
                 break
             # If step is a function then call it
