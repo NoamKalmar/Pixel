@@ -29,7 +29,6 @@ class RobotController:
     def init_cap(self):
         if not self.cap is None:
             self.cap.release()
-            while self.cap.isOpened(): pass
         self.cap = cv2.VideoCapture(self.cap_index, cv2.CAP_DSHOW)
     
     def start(self):
