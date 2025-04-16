@@ -33,6 +33,8 @@ class ControllerApp(tk.Tk):
 
         self.control_frame = tk.Frame(self)
         # self.control_frame.pack()
+        self.is_servos_mirrored = tk.BooleanVar()
+        self.servo_angles = [0 for _ in range(7)]
         self.add_control_frame()
 
         self.table_frame = tk.Frame(self)
@@ -106,7 +108,12 @@ class ControllerApp(tk.Tk):
                                                         variable=self.is_moving_mode)
         self.arrows_moving_checkbutton.grid(row=1, column=2)
 
-        self.servo_index_slider = tk.Scale(self.control_frame, to=5, orient="horizontal")
+        self.servo_index_slider = tk.Scale(
+            self.control_frame, 
+            to=6, 
+            orient="horizontal",
+            command=self.change_servo_index
+        )
         self.servo_index_slider.grid(row=2, column=2)
 
         self.servos_control_slider = tk.Scale(
@@ -116,6 +123,14 @@ class ControllerApp(tk.Tk):
             command=self.send_servos_control_command
         )
         self.servos_control_slider.grid(row=3, column=2)
+        self.mirror_servos_label = tk.Label(self.control_frame, text="Mirror servos")
+        self.mirror_servos_label.grid(row=4, column=2)
+        self.mirror_servos_checkbutton = tk.Checkbutton(
+            self.control_frame, 
+            variable=self.is_servos_mirrored,
+            command=self.change_is_mirrored
+        )
+        self.mirror_servos_checkbutton.grid(row=5, column=2)
 
     def init_keys(self):
         self.bind("<Left>", lambda event: self.send_move_command(MOVE_LEFT_COMMAND))
@@ -191,8 +206,23 @@ class ControllerApp(tk.Tk):
     
     def send_servos_control_command(self, angle: int):
         servo_index = self.servo_index_slider.get()
-        command = SERVO_CONTROL_COMMAND.replace("<index>", str(servo_index)).replace("<angle>", str(angle))
-        self.client.send_command(command, False)
+        command1 = SERVO_CONTROL_COMMAND.replace("<index>", str(servo_index)).replace("<angle>", str(angle))
+        self.client.send_command(command1, False)
+        self.servo_angles[servo_index] = angle
+        if self.is_servos_mirrored.get(): # Work for both hands of the robot
+            command2 = SERVO_CONTROL_COMMAND.replace("<index>", str(servo_index + 3)).replace("<angle>", str(angle))
+            self.client.send_command(command2, False)
+            self.servo_angles[servo_index + 3] = angle
+
+    def change_servo_index(self, index: str):
+        angle = self.servo_angles[int(index)]
+        self.servos_control_slider.set(angle)
+
+    def change_is_mirrored(self):
+        if self.is_servos_mirrored.get():
+            self.servo_index_slider.config(to=2)
+        else:
+            self.servo_index_slider.config(to=6)
 
     def remove_command(self, command_id: int):
         self.client.remove_command(command_id)
