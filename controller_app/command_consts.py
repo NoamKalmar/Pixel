@@ -7,3 +7,4 @@ TURN_LEFT_COMMAND = "motors_manager.turn(-175)"
 TURN_RIGHT_COMMAND = "motors_manager.turn(175)"
 STOP_MOVING_COMMAND = "motors_manager.stop_moving()"
 SERVO_CONTROL_COMMAND = "servos_manager.write_servo(<index>, <angle>)" # replace <index> with index and <angle> with angle
+SERVOS_CONTROL_COMMAND = "servos_manager.write_servos(<indexes>, <angle>)" # replace <indexes> with a list of indexes and <angle> with an angle

@@ -206,12 +206,14 @@ class ControllerApp(tk.Tk):
     
     def send_servos_control_command(self, angle: int):
         servo_index = self.servo_index_slider.get()
-        command1 = SERVO_CONTROL_COMMAND.replace("<index>", str(servo_index)).replace("<angle>", str(angle))
-        self.client.send_command(command1, False)
-        self.servo_angles[servo_index] = angle
-        if self.is_servos_mirrored.get(): # Work for both hands of the robot
-            command2 = SERVO_CONTROL_COMMAND.replace("<index>", str(servo_index + 3)).replace("<angle>", str(angle))
-            self.client.send_command(command2, False)
+        if not self.is_servos_mirrored.get():
+            command = SERVO_CONTROL_COMMAND.replace("<index>", str(servo_index)).replace("<angle>", str(angle))
+            self.client.send_command(command, False)
+            self.servo_angles[servo_index] = angle
+        else:
+            command = SERVOS_CONTROL_COMMAND.replace("<indexes>", str([servo_index, servo_index + 3])).replace("<angle>", str(angle))
+            self.client.send_command(command, False)
+            self.servo_angles[servo_index] = angle
             self.servo_angles[servo_index + 3] = angle
 
     def change_servo_index(self, index: str):

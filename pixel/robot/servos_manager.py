@@ -45,6 +45,10 @@ class ServosManager:
         self.arduino.digital[self.servos[index].pin].write(writing_angle)
         self.servos[index].current_angle = angle
 
+    def write_servos(self, indexes: list[int], angle: int):
+        for index in indexes:
+            self.write_servo(index, angle)
+
     def write_all(self, angle: int) -> None:
         for i in range(len(self.servos)):
             self.write_servo(i, angle)
