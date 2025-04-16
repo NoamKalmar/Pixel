@@ -35,7 +35,7 @@ class Robot:
         self.human_z = None
         self.human_found = False
         self.emotion_model = emotion_recognition.load_model()
-        self.shows = list[Show]
+        self.shows: dict[str, Show] = {}
         self.show_runner_thread = None
         self.stop_show_event = threading.Event()
         
@@ -179,17 +179,27 @@ class Robot:
             json.dump(gesture, file)
 
     def load_shows(self, shows: list[Show]) -> None:
-        self.shows = shows
+        for show in shows:
+            self.shows[show.name] = show
     
-    def run_show(self, name: str, start_step: int = 0) -> None:
-        show_to_run = None
-        for show in self.shows:
-            if show.name == name:
-                show_to_run = show
+    def run_show(self, name: str, start_step: int | str = 0) -> None:
+        show = self.shows[name]
+        if isinstance(start_step, str): # If start_step is string, find the step index by its name
+            for i, step in enumerate(show.steps):
+                if isinstance(step, Callable):
+                    step_func = step
+                elif isinstance(step, tuple):
+                    step_func = step[0]
+                else:
+                    continue
+                if step_func.__name__ == start_step:
+                    start_step = i
+                    break
+                
         self.end_show()
         self.show_runner_thread = threading.Thread(
             target=self._show_runner, 
-            args=(show_to_run, start_step)
+            args=(show, start_step)
         )
         self.show_runner_thread.start()
 
@@ -198,7 +208,7 @@ class Robot:
             if self.stop_show_event.is_set():
                 break
             # If step is a function then call it
-            # If step is  a tuple call the function (the first value) for the specified time (the second value)
+            # If step is a tuple call the function (the first value) for the specified time (the second value)
             if isinstance(step, Callable):
                 step(self)
             elif isinstance(step, tuple):
