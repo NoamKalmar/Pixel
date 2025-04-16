@@ -2,16 +2,16 @@ import socket
 
 # -;-
 def remove_all_commands():
-    return b"-;-"
+    return b"-;-#"
 
-# id;*(if toggled)command
+# id;*(if toggled)command#
 def send_command(command_id: int, command: str, is_toggled: bool) -> str: 
-    message = f"{command_id};{'*' if is_toggled else ''}{command}"
+    message = f"{command_id};{'*' if is_toggled else ''}{command}#"
     return bytes(message, "utf-8")
 
 # id;-
 def send_remove_command(command_id: int) -> str:
-    message = f"{command_id};-"
+    message = f"{command_id};-#"
     return bytes(message, "utf-8")
 
 # id;data//id;data//...#
