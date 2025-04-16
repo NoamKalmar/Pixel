@@ -26,6 +26,7 @@ class Robot:
         self.name = name
         self.servos_manager = servos_manager
         self.motors_manager = motors_manager
+        self.loop_functions: set[Callable] = set()
         self.angles = [[] for _ in range(7)]
         self.unwanted_boxes = []
         self.landmarks = {}
@@ -44,9 +45,11 @@ class Robot:
             return
         self.landmarks, self.current_frame = detect_landmarks.holistic_detect(self.holistic, frame)
 
-        self.current_framemodified_image = cv2.flip(self.current_frame, 1)
+        self.current_frame = cv2.flip(self.current_frame, 1)
         if display_frame:
             cv2.imshow(self.name, self.current_frame)
+
+        self.call_loop_functions()
             
         if self.landmarks["pose"] is None:
             self.human_found = False
@@ -55,6 +58,16 @@ class Robot:
         self.update_human_location()
 
         return (0, None)
+    
+    def call_loop_functions(self) -> None:
+        for function in self.loop_functions:
+            function()
+    
+    def add_to_loop(self, function: Callable) -> None:
+        self.loop_functions.add(function)
+
+    def remove_from_loop(self, function: Callable) -> None:
+        self.loop_functions.remove(function)
     
     def update_human_location(self) -> None:
         self.human_x = self.landmarks["pose"][0].x
@@ -224,3 +237,6 @@ class Robot:
         self.show_runner_thread.join()
         self.show_runner_thread = None
         self.stop_show_event.clear()
+
+    def test(self):
+        print("Hello, World!")
