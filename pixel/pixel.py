@@ -51,7 +51,6 @@ def main():
                                             BACK_MOTOR_PINS, 
                                             FRONT_MOTOR_PINS)
     
-    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
         pixel = Robot(
             holistic=holistic,
@@ -61,10 +60,8 @@ def main():
         )
         pixel.load_shows(SHOWS)
         
-        controller = RobotController(pixel, cap)
+        controller = RobotController(pixel)
         controller.start()
-            
-    cap.release()
 
 if __name__ == "__main__":
     main()

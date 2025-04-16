@@ -13,9 +13,11 @@ BROADCAST_PORT = 1990
 BROADCAST_ADDRESS = ("255.255.255.255", BROADCAST_PORT)
 
 class RobotController:
-    def __init__(self, robot: Robot, cap: cv2.VideoCapture):
+    def __init__(self, robot: Robot, cap_index: int = 0):
         self.robot = robot
-        self.cap = cap
+        self.cap_index = cap_index
+        self.cap: cv2.VideoCapture = None
+        self.init_cap()
         self.running = True
         self.client_connected = False
         self.commands = []
@@ -24,6 +26,12 @@ class RobotController:
         self_ip = socket.gethostbyname(socket.gethostname())
         self.self_address = (self_ip, SERVER_PORT)
 
+    def init_cap(self):
+        if not self.cap is None:
+            self.cap.release()
+            while self.cap.isOpened(): pass
+        self.cap = cv2.VideoCapture(self.cap_index, cv2.CAP_DSHOW)
+    
     def start(self):
         self.server_thread.start()
         self.broadcast_ip_thread.start()
@@ -34,6 +42,8 @@ class RobotController:
             key = cv2.waitKey(5)
             if key == ord("q"):
                 break
+            if key == ord("r"):
+                self.init_cap()
             success, image = self.cap.read()
             self.robot.loop(image, True)
             self.exec_commands()
