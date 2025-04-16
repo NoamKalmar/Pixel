@@ -21,7 +21,8 @@ class ControllerApp(tk.Tk):
         self.title(DEFAULT_TITLE)
 
         self.is_current_triggred = tk.BooleanVar()
-        self.is_arrows_moving_mode = False
+        self.init_keys()
+        self.is_moving_mode = tk.BooleanVar()
         self.current_move_command = None
         self.focus_set()
 
@@ -102,7 +103,7 @@ class ControllerApp(tk.Tk):
         self.arrows_moving_label.grid(row=0, column=2, padx=20)
 
         self.arrows_moving_checkbutton = tk.Checkbutton(self.control_frame, 
-                                                        command=self.moving_mode_change)
+                                                        variable=self.is_moving_mode)
         self.arrows_moving_checkbutton.grid(row=1, column=2)
 
         self.servo_index_slider = tk.Scale(self.control_frame, to=5, orient="horizontal")
@@ -116,26 +117,15 @@ class ControllerApp(tk.Tk):
         )
         self.servos_control_slider.grid(row=3, column=2)
 
-    def moving_mode_change(self):
-        if not self.is_arrows_moving_mode:
-            self.bind("<Left>", lambda event: self.send_move_command(MOVE_LEFT_COMMAND))
-            self.bind("<Right>", lambda event: self.send_move_command(MOVE_RIGHT_COMMAND))
-            self.bind("<Up>", lambda event: self.send_move_command(MOVE_FORWARD_COMMAND))
-            self.bind("<Down>", lambda event: self.send_move_command(MOVE_BACKWARD_COMMAND))
-            self.bind("<Return>", lambda event: self.send_move_command(TURN_RIGHT_COMMAND))
-            self.bind("<Shift_R>", lambda event: self.send_move_command(TURN_LEFT_COMMAND))
-            self.bind("<space>", lambda event: self.send_move_command(STOP_MOVING_COMMAND))
-            self.bind("<KeyRelease>", lambda event: self.send_move_command(STOP_MOVING_COMMAND))
-            self.is_arrows_moving_mode = True
-        else:
-            self.unbind("<Left>")
-            self.unbind("<Right>")
-            self.unbind("<Up>")
-            self.unbind("<Down>")
-            self.unbind("<KeyRelease>")
-            self.unbind("<Return>")
-            self.is_arrows_moving_mode = False
-
+    def init_keys(self):
+        self.bind("<Left>", lambda event: self.send_move_command(MOVE_LEFT_COMMAND))
+        self.bind("<Right>", lambda event: self.send_move_command(MOVE_RIGHT_COMMAND))
+        self.bind("<Up>", lambda event: self.send_move_command(MOVE_FORWARD_COMMAND))
+        self.bind("<Down>", lambda event: self.send_move_command(MOVE_BACKWARD_COMMAND))
+        self.bind("<Return>", lambda event: self.send_move_command(TURN_RIGHT_COMMAND))
+        self.bind("<Shift_R>", lambda event: self.send_move_command(TURN_LEFT_COMMAND))
+        self.bind("<space>", lambda event: self.send_move_command(STOP_MOVING_COMMAND))
+        self.bind("<KeyRelease>", lambda event: self.send_move_command(STOP_MOVING_COMMAND))
 
     def update_data_table(self):
         if not self.client or not self.client.is_connected:
@@ -189,6 +179,8 @@ class ControllerApp(tk.Tk):
             self.last_untriggred_id = command_id
 
     def send_move_command(self, command: str):
+        if not self.is_moving_mode.get():
+            return
         if self.current_move_command and self.current_move_command == command:
             return
         self.send_command(command, False)

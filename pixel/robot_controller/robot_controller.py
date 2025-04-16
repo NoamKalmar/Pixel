@@ -44,10 +44,10 @@ class RobotController:
         for command in self.commands:
             if not command.is_toggled and command.evaluated:
                 continue
-            # try:
-            value = eval(command.command)
-            # except:
-            #     value = "Error"
+            try:
+                value = eval(command.command)
+            except:
+                value = "Error"
 
             command.evaluated = True
             command.return_value = value
