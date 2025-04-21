@@ -38,17 +38,19 @@ class RobotController:
         self.robot_loop()
 
     def robot_loop(self):
-        while self.cap.isOpened():
-            key = cv2.waitKey(5)
-            if key == ord("q"):
-                break
-            if key == ord("r"):
-                self.init_cap()
-            success, image = self.cap.read()
-            self.robot.loop(image, True)
-            self.exec_commands()
-        self.running = False
-        self.cap.release()
+        try:
+            while self.cap.isOpened():
+                key = cv2.waitKey(5)
+                if key == ord("q"):
+                    break
+                if key == ord("r"):
+                    self.init_cap()
+                success, image = self.cap.read()
+                self.robot.loop(image, True)
+                self.exec_commands()
+        finally:
+            self.running = False
+            self.cap.release()
 
     def exec_commands(self):
         for command in self.commands:

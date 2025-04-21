@@ -242,5 +242,5 @@ class Robot:
         """Returns the show names seperated by a comma"""
         shows_str = ""
         for show in self.shows.values():
-            show_str += show.name
+            shows_str += f"{show.name},"
         return shows_str
