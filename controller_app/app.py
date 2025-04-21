@@ -19,20 +19,18 @@ class ControllerApp(tk.Tk):
         super().__init__()
         self.geometry(f"{WIDTH}x{HEIGHT}")
         self.title(DEFAULT_TITLE)
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
-        self.is_current_triggred = tk.BooleanVar()
         self.init_keys()
+        self.is_current_triggred = tk.BooleanVar()
         self.is_moving_mode = tk.BooleanVar()
         self.current_move_command = None
-        self.focus_set()
 
         self.ip_frame = tk.Frame(self)
         self.ip_frame.pack()
         self.add_ip_frame()
-        self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         self.control_frame = tk.Frame(self)
-        # self.control_frame.pack()
         self.is_servos_mirrored = tk.BooleanVar()
         self.servo_angles = [0 for _ in range(7)]
         self.add_control_frame()
@@ -47,6 +45,25 @@ class ControllerApp(tk.Tk):
         self.ip_finder = IPFinder()
         self.last_found_ip = None
     
+    def init_keys(self):
+        self.bind("<Left>", lambda event: self.send_move_command(MOVE_LEFT_COMMAND))
+        self.bind("<Right>", lambda event: self.send_move_command(MOVE_RIGHT_COMMAND))
+        self.bind("<Up>", lambda event: self.send_move_command(MOVE_FORWARD_COMMAND))
+        self.bind("<Down>", lambda event: self.send_move_command(MOVE_BACKWARD_COMMAND))
+        self.bind("<Return>", lambda event: self.send_move_command(TURN_RIGHT_COMMAND))
+        self.bind("<Shift_R>", lambda event: self.send_move_command(TURN_LEFT_COMMAND))
+        self.bind("<space>", lambda event: self.send_move_command(STOP_MOVING_COMMAND))
+        self.bind("<KeyRelease>", lambda event: self.send_move_command(STOP_MOVING_COMMAND))
+        self.focus_set()
+
+    def change_frame(self, frame: tk.Frame, new_title: str = None):
+        for widget in self.winfo_children():
+            if isinstance(widget, tk.Frame):
+                widget.pack_forget()
+        frame.pack()
+        if not new_title is None:
+            self.title(new_title)
+
     def add_ip_frame(self):
         self.ip_label = tk.Label(self.ip_frame, text="Enter IP")
         self.ip_label.pack()
@@ -132,15 +149,6 @@ class ControllerApp(tk.Tk):
         )
         self.mirror_servos_checkbutton.grid(row=5, column=2)
 
-    def init_keys(self):
-        self.bind("<Left>", lambda event: self.send_move_command(MOVE_LEFT_COMMAND))
-        self.bind("<Right>", lambda event: self.send_move_command(MOVE_RIGHT_COMMAND))
-        self.bind("<Up>", lambda event: self.send_move_command(MOVE_FORWARD_COMMAND))
-        self.bind("<Down>", lambda event: self.send_move_command(MOVE_BACKWARD_COMMAND))
-        self.bind("<Return>", lambda event: self.send_move_command(TURN_RIGHT_COMMAND))
-        self.bind("<Shift_R>", lambda event: self.send_move_command(TURN_LEFT_COMMAND))
-        self.bind("<space>", lambda event: self.send_move_command(STOP_MOVING_COMMAND))
-        self.bind("<KeyRelease>", lambda event: self.send_move_command(STOP_MOVING_COMMAND))
 
     def update_data_table(self):
         if not self.client or not self.client.is_connected:
@@ -246,9 +254,7 @@ class ControllerApp(tk.Tk):
             self.client = None
             messagebox.showerror("Error", "Error while trying to connect to the robot")
             return
-        self.ip_frame.pack_forget()
-        self.title("Connected")
-        self.control_frame.pack()
+        self.change_frame(self.control_frame, "Control Panel")
         self.table_frame.pack(pady=20)
         self.update_data_table()
 
@@ -257,11 +263,8 @@ class ControllerApp(tk.Tk):
             self.client.running = False
             self.client.join()
             self.client = None
-        self.control_frame.pack_forget()
-        self.table_frame.pack_forget()
+        self.change_frame(self.ip_frame, DEFAULT_TITLE)
         self.is_connected_label.config(text="Disconnected", bg=RED)
-        self.title(DEFAULT_TITLE)
-        self.ip_frame.pack()
 
     def on_closing(self):
         if self.client:

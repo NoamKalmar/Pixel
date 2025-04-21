@@ -17,7 +17,6 @@ def get_command(data: bytes) -> Command | int | None:
     remove_prefix = command_data.startswith("-")
     if toggle_prefix or remove_prefix: command_data = command_data[1:]
 
-    print(data, command_data, command_id)
     command = Command(
                 command_id=int(command_id),
                 command=f"self.robot.{command_data}",
