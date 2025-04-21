@@ -1,16 +1,16 @@
 import tkinter as tk
 from tkinter import messagebox
 import socket
-from client import Client, IPFinder
+from client import Client, CommandReturnValue, IPFinder
 import time
 from command_consts import *
 
-WIDTH = 600
-HEIGHT = 300
+WIDTH = 1200
+HEIGHT = 600
 
 GREEN = "#00ff1a"
 RED = "#ff1100"
-
+DEFAULT_TITLE = "Waiting for connection"
 LOCALHOST_SERVER_ADDRESS = "127.0.0.1:1989"
 BROADCAST_PORT = 1990
 
@@ -37,6 +37,9 @@ class ControllerApp(tk.Tk):
         self.client = None
         self.ip_finder = IPFinder()
         self.last_found_ip = None
+
+        self.robot_name = CommandReturnValue()
+        self.show_names = CommandReturnValue()
     
     def init_keys(self):
         self.bind("<Left>", lambda event: self.send_move_command(MOVE_LEFT_COMMAND))
@@ -67,6 +70,7 @@ class ControllerApp(tk.Tk):
     def init_frames(self):
         self.init_ip_frame()
         self.init_control_frame()
+        self.init_shows_menu()
 
     def init_ip_frame(self):
         self.ip_frame = tk.Frame(self)
@@ -154,6 +158,19 @@ class ControllerApp(tk.Tk):
         )
         self.mirror_servos_checkbutton.grid(row=5, column=2)
 
+        self.shows_menu_button = tk.Button(
+            self.control_frame,
+            text="Shows menu",
+            command=lambda: self.change_frame(self.shows_menu_frame, "Shows menu")
+        )
+        self.shows_menu_button.grid(row=0, column=3)
+
+    def init_shows_menu(self):
+        self.shows_menu_frame = tk.Frame(self)
+
+    def get_robot_data(self):
+        self.client.get_command_value(GET_NAME_COMMAND, self.robot_name)
+        self.client.get_command_value(GET_SHOW_NAMES_COMMAND, self.show_names)
 
     def update_data(self):
         if not self.client or not self.client.is_connected:
@@ -162,15 +179,18 @@ class ControllerApp(tk.Tk):
             self.is_connected_label.config(text="Connected", bg=GREEN)
         if not self.client:
             return
+        
+        self.title(self.robot_name.get_value())
+
         for widget in self.table_frame.winfo_children():
             if self.untriggred_data_label and widget == self.untriggred_data_label:
                 continue
             widget.destroy()
         
-        if str(self.last_untriggred_id) in self.client.commands_data:
+        if self.last_untriggred_id in self.client.commands_data:
             self.untriggred_data_label = tk.Label(
                 self.table_frame, 
-                text=f"Value: {self.client.commands_data[str(self.last_untriggred_id)]}"
+                text=f"Value: {self.client.commands_data[self.last_untriggred_id]}"
             )
             self.untriggred_data_label.grid(row=0, column=0)
 
@@ -260,6 +280,7 @@ class ControllerApp(tk.Tk):
             messagebox.showerror("Error", "Error while trying to connect to the robot")
             return
         self.change_frame(self.control_frame, "Control Panel")
+        self.after(100, self.get_robot_data)
         self.table_frame.grid(pady=20)
         self.update_data()
 

@@ -23,7 +23,7 @@ def get_commands_data(data: bytes) -> dict:
     values = data.split("//")[:-1]
     for value in values:
         command_id, return_value = value.split(";", maxsplit=1)
-        commands_data[command_id] = return_value
+        commands_data[int(command_id)] = return_value
     return commands_data
 
 def get_server_ip(data: bytes) -> None | str:

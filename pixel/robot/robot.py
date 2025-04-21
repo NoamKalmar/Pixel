@@ -238,7 +238,7 @@ class Robot:
         self.show_runner_thread = None
         self.stop_show_event.clear()
 
-    def get_show_names(self) -> str:
+    def get_show_names_str(self) -> str:
         """Returns the show names seperated by a comma"""
         shows_str = ""
         for show in self.shows.values():

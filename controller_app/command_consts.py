@@ -1,4 +1,5 @@
-DEFAULT_TITLE = "Waiting for connection"
+GET_NAME_COMMAND = "name"
+GET_SHOW_NAMES_COMMAND = "get_show_names_str()"
 MOVE_LEFT_COMMAND = "motors_manager.move_x(-255)"
 MOVE_RIGHT_COMMAND = "motors_manager.move_x(255)"
 MOVE_FORWARD_COMMAND = "motors_manager.move_y(255)"
