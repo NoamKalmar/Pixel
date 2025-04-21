@@ -13,14 +13,15 @@ BROADCAST_PORT = 1990
 BROADCAST_ADDRESS = ("255.255.255.255", BROADCAST_PORT)
 
 class RobotController:
-    def __init__(self, robot: Robot, cap_index: int = 0):
+    def __init__(self, robot: Robot, cap_index: int = 0, crash_if_error: bool = False):
         self.robot = robot
         self.cap_index = cap_index
+        self.crash_if_error = crash_if_error
         self.cap: cv2.VideoCapture = None
         self.init_cap()
         self.running = True
         self.client_connected = False
-        self.commands = []
+        self.commands: list[Command] = []
         self.server_thread = threading.Thread(target=self.server_loop, daemon=True)
         self.broadcast_ip_thread = threading.Thread(target=self.broadcast_ip, daemon=True)
         self_ip = socket.gethostbyname(socket.gethostname())
@@ -53,11 +54,13 @@ class RobotController:
         for command in self.commands:
             if not command.is_toggled and command.evaluated:
                 continue
-            try:
+            if self.crash_if_error:
                 value = eval(command.command)
-            except:
-                value = "Error"
-
+            else:
+                try:
+                    value = eval(command.command)
+                except:
+                    value = "Error"
             command.evaluated = True
             command.return_value = value
 
