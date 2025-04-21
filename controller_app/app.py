@@ -22,20 +22,13 @@ class ControllerApp(tk.Tk):
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         self.init_keys()
-        self.is_current_triggred = tk.BooleanVar()
-        self.is_moving_mode = tk.BooleanVar()
-        self.current_move_command = None
-
-        self.ip_frame = tk.Frame(self)
+        self.init_frames()
         self.ip_frame.pack()
-        self.add_ip_frame()
 
-        self.control_frame = tk.Frame(self)
-        self.is_servos_mirrored = tk.BooleanVar()
+        self.current_move_command = None
         self.servo_angles = [0 for _ in range(7)]
-        self.add_control_frame()
 
-        self.table_frame = tk.Frame(self)
+        self.table_frame = tk.Frame(self.control_frame)
 
         self.toggled_commands = {} # {id: command_str}
         self.untriggred_data_label = None
@@ -64,7 +57,20 @@ class ControllerApp(tk.Tk):
         if not new_title is None:
             self.title(new_title)
 
-    def add_ip_frame(self):
+    def magic_connect(self):
+        found_ip = self.ip_finder.get_ip()
+        if found_ip:
+            self.connect(found_ip)
+        else:
+            messagebox.showerror("Error", "Robot not found")
+
+    def init_frames(self):
+        self.init_ip_frame()
+        self.init_control_frame()
+
+    def init_ip_frame(self):
+        self.ip_frame = tk.Frame(self)
+
         self.ip_label = tk.Label(self.ip_frame, text="Enter IP")
         self.ip_label.pack()
         self.ip_entry = tk.Entry(self.ip_frame)
@@ -84,14 +90,13 @@ class ControllerApp(tk.Tk):
         )
         self.magic_connect_button.pack(pady=5)
 
-    def magic_connect(self):
-        found_ip = self.ip_finder.get_ip()
-        if found_ip:
-            self.connect(found_ip)
-        else:
-            messagebox.showerror("Error", "Robot not found")
 
-    def add_control_frame(self):
+    def init_control_frame(self):
+        self.control_frame = tk.Frame(self)
+        self.is_servos_mirrored = tk.BooleanVar()
+        self.is_current_triggred = tk.BooleanVar()
+        self.is_moving_mode = tk.BooleanVar()
+
         self.disconnect_button = tk.Button(self, text="Disconnect", command=self.disconnect)
         self.disconnect_button.place(x=10, y=10, anchor="nw")
         self.is_connected_label = tk.Label(self, text="Disconnected", bg=RED)
@@ -150,7 +155,7 @@ class ControllerApp(tk.Tk):
         self.mirror_servos_checkbutton.grid(row=5, column=2)
 
 
-    def update_data_table(self):
+    def update_data(self):
         if not self.client or not self.client.is_connected:
             self.is_connected_label.config(text="Disconnected", bg=RED)
         else:
@@ -187,7 +192,7 @@ class ControllerApp(tk.Tk):
             value_label = tk.Label(self.table_frame, text=value)
             value_label.grid(row=row + 1, column=2, padx=20)
         
-        self.after(100, self.update_data_table)
+        self.after(100, self.update_data)
 
     def send_command(self, command: str = None, is_triggred: bool = None):
         if not self.client:
@@ -255,8 +260,8 @@ class ControllerApp(tk.Tk):
             messagebox.showerror("Error", "Error while trying to connect to the robot")
             return
         self.change_frame(self.control_frame, "Control Panel")
-        self.table_frame.pack(pady=20)
-        self.update_data_table()
+        self.table_frame.grid(pady=20)
+        self.update_data()
 
     def disconnect(self):
         if self.client:
