@@ -1,6 +1,2 @@
 *.exe
-pixel/__pycache__
-pixel/landmarks/__pycache__
-pixel/robot/__pycache__
-pixel/robot_controller/__pycache__
-controller_app/__pycache__
+**/__pycache__
