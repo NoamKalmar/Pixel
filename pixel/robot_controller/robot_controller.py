@@ -28,7 +28,7 @@ class RobotController:
         self.self_address = (self_ip, SERVER_PORT)
 
     def init_cap(self):
-        if not self.cap is None:
+        if self.cap is not None:
             self.cap.release()
         self.cap = cv2.VideoCapture(self.cap_index, cv2.CAP_DSHOW)
     

@@ -57,7 +57,7 @@ class ControllerApp(tk.Tk):
             if isinstance(widget, tk.Frame):
                 widget.pack_forget()
         frame.pack()
-        if not new_title is None:
+        if new_title is not None:
             self.title(new_title)
 
     def magic_connect(self):
@@ -169,8 +169,13 @@ class ControllerApp(tk.Tk):
         self.shows_menu_frame = tk.Frame(self)
 
     def get_robot_data(self):
-        self.client.get_command_value(GET_NAME_COMMAND, self.robot_name)
+        self.client.get_command_value(GET_NAME_COMMAND, on_return=self.got_name)
         self.client.get_command_value(GET_SHOW_NAMES_COMMAND, self.show_names)
+    
+    def got_name(self, name: str | None):
+        if name is None:
+            return
+        self.title(name)
 
     def update_data(self):
         if not self.client or not self.client.is_connected:
@@ -179,8 +184,6 @@ class ControllerApp(tk.Tk):
             self.is_connected_label.config(text="Connected", bg=GREEN)
         if not self.client:
             return
-        
-        self.title(self.robot_name.get_value())
 
         for widget in self.table_frame.winfo_children():
             if self.untriggred_data_label and widget == self.untriggred_data_label:

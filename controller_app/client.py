@@ -2,13 +2,14 @@ import socket
 import threading
 import client_protocol
 import time
+from typing import Callable, Optional
 
 BROADCAST_LISTENER_PORT = 1990
 BROADCAST_LISTENER_ADDRESS = ("0.0.0.0", BROADCAST_LISTENER_PORT)
 
 class CommandReturnValue:
     def __init__(self):
-        self.value: str | None = None
+        self.value: Optional[str] = None
     
     def get_value(self):
         return str(self.value)
@@ -72,14 +73,25 @@ class Client(threading.Thread):
         message = client_protocol.remove_all_commands()
         self.socket.sendall(message)
 
-    def get_command_value(self, command: str, return_value_object: CommandReturnValue):
+    def get_command_value(
+            self, 
+            command: str, 
+            return_value_object: Optional[CommandReturnValue] = None, 
+            on_return: Optional[Callable] = None
+        ):
         command_return_thread = threading.Thread(
             target=self._get_command_value,
-            args=(command, return_value_object)
+            args=(command, return_value_object, on_return)
         )
         command_return_thread.start()
     
-    def _get_command_value(self, command: str, return_value_object: CommandReturnValue, timeout: float = 2):
+    def _get_command_value(
+            self, 
+            command: str, 
+            return_value_object: Optional[CommandReturnValue],
+            on_return: Optional[Callable],
+            timeout: float = 2
+        ):
         command_id = self.send_command(command, False)
         start_time = time.time()
         while not command_id in self.commands_data.keys():
@@ -87,9 +99,13 @@ class Client(threading.Thread):
                 break
         else:
             try:
-                return_value_object.value = self.commands_data[command_id]
+                return_value = self.commands_data[command_id]
             except KeyError:
                 return
+            if return_value_object is not None:
+                return_value_object.value = return_value
+            if on_return is not None:
+                on_return(return_value)
         return # If the return value was not sent back by the robot for some reason, do nothing
         
 
