@@ -1,5 +1,4 @@
 GET_NAME_COMMAND = "name"
-GET_SHOW_NAMES_COMMAND = "get_show_names_str()"
 MOVE_LEFT_COMMAND = "motors_manager.move_x(-255)"
 MOVE_RIGHT_COMMAND = "motors_manager.move_x(255)"
 MOVE_FORWARD_COMMAND = "motors_manager.move_y(255)"
@@ -9,3 +8,9 @@ TURN_RIGHT_COMMAND = "motors_manager.turn(175)"
 STOP_MOVING_COMMAND = "motors_manager.stop_moving()"
 SERVO_CONTROL_COMMAND = "servos_manager.write_servo(<index>, <angle>)" # replace <index> with index and <angle> with angle
 SERVOS_CONTROL_COMMAND = "servos_manager.write_servos(<indexes>, <angle>)" # replace <indexes> with a list of indexes and <angle> with an angle
+GET_SHOW_NAMES_COMMAND = "get_show_names_str()"
+GET_SHOW_STEPS_COMMAND = "get_show_steps_str('<name>')" # replace <name> with the show name
+PLAY_SHOW_COMMAND = "run_show('<name>')" # replace <name> with the show name
+PLAY_SHOW_FROM_STEP_COMMAND = "run_show('<name>', <step>)" # replace <name> with the show name and <step> with the start step index
+PLAY_STEP_COMMAND = "run_show('<name>', <step>, <step>)" # replace <name> with the show name and <step> with the wanted step index
+END_SHOW_COMMAND = "end_show()"

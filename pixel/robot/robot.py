@@ -195,29 +195,20 @@ class Robot:
         for show in shows:
             self.shows[show.name] = show
     
-    def run_show(self, name: str, start_step: int | str = 0) -> None:
+    def run_show(self, name: str, start_step: int = 0, end_step: Optional[int] = None) -> None:
         show = self.shows[name]
-        if isinstance(start_step, str): # If start_step is string, find the step index by its name
-            for i, step in enumerate(show.steps):
-                if isinstance(step, Callable):
-                    step_func = step
-                elif isinstance(step, tuple):
-                    step_func = step[0]
-                else:
-                    continue
-                if step_func.__name__ == start_step:
-                    start_step = i
-                    break
                 
         self.end_show()
         self.show_runner_thread = threading.Thread(
             target=self._show_runner, 
-            args=(show, start_step)
+            args=(show, start_step, end_step)
         )
         self.show_runner_thread.start()
 
-    def _show_runner(self, show: Show, start_step: int = 0) -> None:
-        for step in show.steps[start_step:]:
+    def _show_runner(self, show: Show, start_step: int = 0, end_step: Optional[int] = None) -> None:
+        if end_step == None:
+            end_step = len(show.steps) - 1
+        for step in show.steps[start_step:end_step + 1]:
             if self.stop_show_event.is_set():
                 break
             # If step is a function then call it
@@ -243,4 +234,21 @@ class Robot:
         shows_str = ""
         for show in self.shows.values():
             shows_str += f"{show.name},"
+        shows_str = shows_str[:-1]
         return shows_str
+    
+    def get_show_steps_str(self, name: str) -> str:
+        """Returns all of the steps' names of a specific show in order seperated by a comma"""
+        show = self.shows[name]
+        steps_str = ""
+        for step in show.steps:
+            step_name = ""
+            if isinstance(step, Callable):
+                step_name = step.__name__
+            elif isinstance(step, tuple):
+                step_name = step[0].__name__
+            else:
+                raise TypeError
+            steps_str += f"{step_name},"
+        steps_str = steps_str[:-1]
+        return steps_str

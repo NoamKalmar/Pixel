@@ -5,11 +5,12 @@ from client import Client, CommandReturnValue, IPFinder
 import time
 from command_consts import *
 
-WIDTH = 1200
-HEIGHT = 600
+WIDTH = 600
+HEIGHT = 300
 
 GREEN = "#00ff1a"
 RED = "#ff1100"
+DEFAULT_BUTTON_COLOR = "SystemButtonFace"
 DEFAULT_TITLE = "Waiting for connection"
 LOCALHOST_SERVER_ADDRESS = "127.0.0.1:1989"
 BROADCAST_PORT = 1990
@@ -38,8 +39,9 @@ class ControllerApp(tk.Tk):
         self.ip_finder = IPFinder()
         self.last_found_ip = None
 
-        self.robot_name = CommandReturnValue()
-        self.show_names = CommandReturnValue()
+        self.show_frames: dict = {} # {name: frame}
+        self.step_buttons: list[tk.Button] = []
+        self.selected_step: int | None = None
     
     def init_keys(self):
         self.bind("<Left>", lambda event: self.send_move_command(MOVE_LEFT_COMMAND))
@@ -70,7 +72,7 @@ class ControllerApp(tk.Tk):
     def init_frames(self):
         self.init_ip_frame()
         self.init_control_frame()
-        self.init_shows_menu()
+        # The shows menu frame will be initalized when loaded
 
     def init_ip_frame(self):
         self.ip_frame = tk.Frame(self)
@@ -161,16 +163,119 @@ class ControllerApp(tk.Tk):
         self.shows_menu_button = tk.Button(
             self.control_frame,
             text="Shows menu",
-            command=lambda: self.change_frame(self.shows_menu_frame, "Shows menu")
+            command=lambda: self.client.get_command_value(GET_SHOW_NAMES_COMMAND, 
+                                                          on_return=self.load_shows_menu)
         )
         self.shows_menu_button.grid(row=0, column=3)
 
-    def init_shows_menu(self):
+    def load_shows_menu(self, show_names: str | None):
+        if show_names is None:
+            return
+        
         self.shows_menu_frame = tk.Frame(self)
+        shows_list = show_names.split(",")
+        for i, show_name in enumerate(shows_list):
+            show_button = tk.Button(
+                self.shows_menu_frame, 
+                text=show_name,
+                command=lambda name=show_name: self.client.get_command_value(
+                    GET_SHOW_STEPS_COMMAND.replace("<name>", name),
+                    on_return=lambda step_names, name=name: self.load_show_menu(name, 
+                                                                                step_names)
+                )
+            )
+            show_button.grid(row=i, column=0, pady=10)
+
+        self.go_back_button = tk.Button(
+            self.shows_menu_frame,
+            text="Back",
+            command=self.go_home
+        )
+        self.go_back_button.grid(row=0, column=1, padx=30)
+        
+        self.change_frame(self.shows_menu_frame)
+    
+    def load_show_menu(self, show_name: str, step_names: str | None):
+        if step_names is None:
+            return
+        self.show_frames[show_name] = tk.Frame(self)
+        frame = self.show_frames[show_name]
+        self.step_buttons = []
+        steps = step_names.split(",")
+        for i, step in enumerate(steps):
+            bg_color = GREEN if self.selected_step == i else DEFAULT_BUTTON_COLOR
+            step_button = tk.Button(
+                frame,
+                text=step,
+                bg=bg_color,
+                command=lambda index=i: self.select_step(index)
+            )
+            step_button.grid(row=i, column=0)
+            self.step_buttons.append(step_button)
+        
+        self.play_show_button = tk.Button(
+            frame,
+            text="Play show",
+            command=lambda name=show_name: self.send_command(PLAY_SHOW_COMMAND.replace("<name>", name))
+        )
+        self.play_show_button.grid(row=0, column=1, padx=20)
+
+        self.play_show_from_step_button = tk.Button(
+            frame,
+            text="Play show from step",
+            command=lambda name=show_name: self.send_command(
+                PLAY_SHOW_FROM_STEP_COMMAND.replace("<name>", name).replace("<step>", str(self.selected_step))
+            )
+        )
+        self.play_show_from_step_button.grid(row=1, column=1, padx=20)
+
+        self.play_step_button = tk.Button(
+            frame,
+            text="Play step",
+            command=lambda name=show_name: self.send_command(
+                PLAY_STEP_COMMAND.replace("<name>", name).replace("<step>", str(self.selected_step))
+            )
+        )
+        self.play_step_button.grid(row=2, column=1)
+
+        self.end_show_button = tk.Button(
+            frame,
+            text="End show",
+            command=lambda: self.send_command(END_SHOW_COMMAND)
+        )
+        self.end_show_button.grid(row=3, column=1)
+
+        self.go_back_button = tk.Button(
+            frame,
+            text="Back",
+            command=self.go_home
+        )
+        self.go_back_button.grid(row=0, column=2, padx=20)
+
+        self.change_frame(frame)
+
+    def go_home(self):
+        self.selected_step = None
+        self.change_frame(self.control_frame)
+    
+    def select_step(self, step_index: int):
+        step_button = self.step_buttons[step_index]
+        # If step is already select, then unselect it
+        if self.selected_step == step_index:
+            step_button.config(bg=DEFAULT_BUTTON_COLOR)
+            self.selected_step = None
+            return
+        
+        # When a button is selected, unselect it
+        self.selected_step = step_index
+        for i, button in enumerate(self.step_buttons):
+            if step_index == i:
+                button.config(bg=GREEN)
+            else:
+                button.config(bg=DEFAULT_BUTTON_COLOR)
 
     def get_robot_data(self):
         self.client.get_command_value(GET_NAME_COMMAND, on_return=self.got_name)
-        self.client.get_command_value(GET_SHOW_NAMES_COMMAND, self.show_names)
     
     def got_name(self, name: str | None):
         if name is None:
