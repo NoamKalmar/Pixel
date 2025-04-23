@@ -189,7 +189,7 @@ class ControllerApp(tk.Tk):
         self.go_back_button = tk.Button(
             self.shows_menu_frame,
             text="Back",
-            command=self.go_home
+            command=lambda: self.change_frame(self.control_frame)
         )
         self.go_back_button.grid(row=0, column=1, padx=30)
         
@@ -198,6 +198,7 @@ class ControllerApp(tk.Tk):
     def load_show_menu(self, show_name: str, step_names: str | None):
         if step_names is None:
             return
+        self.selected_step = None
         self.show_frames[show_name] = tk.Frame(self)
         frame = self.show_frames[show_name]
         self.step_buttons = []
@@ -248,15 +249,11 @@ class ControllerApp(tk.Tk):
         self.go_back_button = tk.Button(
             frame,
             text="Back",
-            command=self.go_home
+            command=lambda: self.change_frame(self.control_frame)
         )
         self.go_back_button.grid(row=0, column=2, padx=20)
 
         self.change_frame(frame)
-
-    def go_home(self):
-        self.selected_step = None
-        self.change_frame(self.control_frame)
     
     def select_step(self, step_index: int):
         step_button = self.step_buttons[step_index]
