@@ -287,7 +287,7 @@ class ControllerApp(tk.Tk):
             self.is_connected_label.config(text="Connected", bg=GREEN)
         if not self.client:
             return
-        if self.running_step_command_id in self.client.commands_data.keys():
+        if self.client.got_command_response(self.running_step_command_id):
             running_step = int(self.client.commands_data[self.running_step_command_id])
             if running_step == -1:
                 self.default_all_steps()

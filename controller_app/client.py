@@ -72,6 +72,9 @@ class Client(threading.Thread):
     def remove_all_commands(self):
         message = client_protocol.remove_all_commands()
         self.socket.sendall(message)
+    
+    def got_command_response(self, command_id: int) -> bool:
+        return command_id in self.commands_data.keys()
 
     def get_command_value(
             self, 
@@ -94,7 +97,7 @@ class Client(threading.Thread):
         ):
         command_id = self.send_command(command, False)
         start_time = time.time()
-        while not command_id in self.commands_data.keys():
+        while not self.got_command_response(command_id):
             if time.time() - start_time > timeout:
                 break
         else:
