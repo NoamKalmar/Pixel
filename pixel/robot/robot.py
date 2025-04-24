@@ -37,6 +37,7 @@ class Robot:
         self.human_found = False
         self.emotion_model = emotion_recognition.load_model()
         self.shows: dict[str, Show] = {}
+        self.current_running_step_index: int = -1
         self.show_runner_thread = None
         self.stop_show_event = threading.Event()
         
@@ -208,18 +209,22 @@ class Robot:
     def _show_runner(self, show: Show, start_step: int = 0, end_step: Optional[int] = None) -> None:
         if end_step == None:
             end_step = len(show.steps) - 1
-        for step in show.steps[start_step:end_step + 1]:
+        for i, step in enumerate(show.steps[start_step:end_step + 1]):
             if self.stop_show_event.is_set():
                 break
             # If step is a function then call it
             # If step is a tuple call the function (the first value) for the specified time (the second value)
-            if isinstance(step, Callable):
-                step(self)
-            elif isinstance(step, tuple):
-                step_func, step_time = step
-                show.start_step_time = time.time()
-                while time.time() - show.start_step_time < step_time:
-                    step_func(self)
+            self.current_running_step_index = i + start_step
+            try:
+                if isinstance(step, Callable):
+                    step(self)
+                elif isinstance(step, tuple):
+                    step_func, step_time = step
+                    show.start_step_time = time.time()
+                    while time.time() - show.start_step_time < step_time:
+                        step_func(self)
+            finally:
+                self.current_running_step_index = -1
 
     def end_show(self) -> None:
         if self.show_runner_thread is None:
@@ -252,3 +257,7 @@ class Robot:
             steps_str += f"{step_name},"
         steps_str = steps_str[:-1]
         return steps_str
+    
+    def get_running_step_index(self) -> int:
+        """If a show step is currently currning, returns its index, else return -1"""
+        return self.current_running_step_index

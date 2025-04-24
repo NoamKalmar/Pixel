@@ -10,6 +10,7 @@ HEIGHT = 300
 
 GREEN = "#00ff1a"
 RED = "#ff1100"
+GOLD = "#ffd700"
 DEFAULT_BUTTON_COLOR = "SystemButtonFace"
 DEFAULT_TITLE = "Waiting for connection"
 LOCALHOST_SERVER_ADDRESS = "127.0.0.1:1989"
@@ -42,7 +43,8 @@ class ControllerApp(tk.Tk):
         self.show_frames: dict = {} # {name: frame}
         self.step_buttons: list[tk.Button] = []
         self.selected_step: int | None = None
-    
+        self.running_step_command_id: int | None = None
+
     def init_keys(self):
         self.bind("<Left>", lambda event: self.send_move_command(MOVE_LEFT_COMMAND))
         self.bind("<Right>", lambda event: self.send_move_command(MOVE_RIGHT_COMMAND))
@@ -204,11 +206,9 @@ class ControllerApp(tk.Tk):
         self.step_buttons = []
         steps = step_names.split(",")
         for i, step in enumerate(steps):
-            bg_color = GREEN if self.selected_step == i else DEFAULT_BUTTON_COLOR
             step_button = tk.Button(
                 frame,
                 text=step,
-                bg=bg_color,
                 command=lambda index=i: self.select_step(index)
             )
             step_button.grid(row=i, column=0)
@@ -217,14 +217,14 @@ class ControllerApp(tk.Tk):
         self.play_show_button = tk.Button(
             frame,
             text="Play show",
-            command=lambda name=show_name: self.send_command(PLAY_SHOW_COMMAND.replace("<name>", name))
+            command=lambda name=show_name: self.send_show_playing_command(PLAY_SHOW_COMMAND.replace("<name>", name))
         )
         self.play_show_button.grid(row=0, column=1, padx=20)
 
         self.play_show_from_step_button = tk.Button(
             frame,
             text="Play show from step",
-            command=lambda name=show_name: self.send_command(
+            command=lambda name=show_name: self.send_show_playing_command(
                 PLAY_SHOW_FROM_STEP_COMMAND.replace("<name>", name).replace("<step>", str(self.selected_step))
             )
         )
@@ -233,7 +233,7 @@ class ControllerApp(tk.Tk):
         self.play_step_button = tk.Button(
             frame,
             text="Play step",
-            command=lambda name=show_name: self.send_command(
+            command=lambda name=show_name: self.send_show_playing_command(
                 PLAY_STEP_COMMAND.replace("<name>", name).replace("<step>", str(self.selected_step))
             )
         )
@@ -263,13 +263,14 @@ class ControllerApp(tk.Tk):
             self.selected_step = None
             return
         
-        # When a button is selected, unselect it
+        # When a button is selected, unselect all of the other ones
         self.selected_step = step_index
-        for i, button in enumerate(self.step_buttons):
-            if step_index == i:
-                button.config(bg=GREEN)
-            else:
-                button.config(bg=DEFAULT_BUTTON_COLOR)
+        self.default_all_steps()
+        self.step_buttons[step_index].config(bg=GREEN)
+    
+    def default_all_steps(self):
+        for button in self.step_buttons:
+            button.config(bg=DEFAULT_BUTTON_COLOR)
 
     def get_robot_data(self):
         self.client.get_command_value(GET_NAME_COMMAND, on_return=self.got_name)
@@ -279,14 +280,26 @@ class ControllerApp(tk.Tk):
             return
         self.title(name)
 
-    def update_data(self):
+    def loop(self):
         if not self.client or not self.client.is_connected:
             self.is_connected_label.config(text="Disconnected", bg=RED)
         else:
             self.is_connected_label.config(text="Connected", bg=GREEN)
         if not self.client:
             return
-
+        if self.running_step_command_id in self.client.commands_data.keys():
+            running_step = int(self.client.commands_data[self.running_step_command_id])
+            if running_step == -1:
+                self.default_all_steps()
+                self.remove_command(self.running_step_command_id)
+                self.running_step_command_id = None
+            else:
+                self.default_all_steps()
+                self.step_buttons[int(running_step)].config(bg=GOLD)
+        self.update_commands_data()
+        self.after(100, self.loop)
+    
+    def update_commands_data(self):
         for widget in self.table_frame.winfo_children():
             if self.untriggred_data_label and widget == self.untriggred_data_label:
                 continue
@@ -316,8 +329,7 @@ class ControllerApp(tk.Tk):
 
             value_label = tk.Label(self.table_frame, text=value)
             value_label.grid(row=row + 1, column=2, padx=20)
-        
-        self.after(100, self.update_data)
+
 
     def send_command(self, command: str = None, is_triggred: bool = None):
         if not self.client:
@@ -330,6 +342,8 @@ class ControllerApp(tk.Tk):
             self.toggled_commands[command_id] = command
         else:
             self.last_untriggred_id = command_id
+
+        return command_id
 
     def send_move_command(self, command: str):
         if not self.is_moving_mode.get():
@@ -353,6 +367,12 @@ class ControllerApp(tk.Tk):
             self.client.send_command(command, False)
             self.servo_angles[servo_index] = angle
             self.servo_angles[servo_index + 3] = angle
+    
+    def send_show_playing_command(self, command: str):
+        self.selected_step = None
+        self.default_all_steps()
+        self.send_command(command)
+        self.running_step_command_id = self.send_command(GET_RUNNING_STEP, True)
 
     def change_servo_index(self, index: str):
         angle = self.servo_angles[int(index)]
@@ -387,7 +407,7 @@ class ControllerApp(tk.Tk):
         self.change_frame(self.control_frame, "Control Panel")
         self.after(100, self.get_robot_data)
         self.table_frame.grid(pady=20)
-        self.update_data()
+        self.loop()
 
     def disconnect(self):
         if self.client:

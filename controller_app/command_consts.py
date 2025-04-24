@@ -14,3 +14,4 @@ PLAY_SHOW_COMMAND = "run_show('<name>')" # replace <name> with the show name
 PLAY_SHOW_FROM_STEP_COMMAND = "run_show('<name>', <step>)" # replace <name> with the show name and <step> with the start step index
 PLAY_STEP_COMMAND = "run_show('<name>', <step>, <step>)" # replace <name> with the show name and <step> with the wanted step index
 END_SHOW_COMMAND = "end_show()"
+GET_RUNNING_STEP = "get_running_step_index()"
