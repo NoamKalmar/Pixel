@@ -1,5 +1,6 @@
 import cv2
 import mediapipe as mp
+import numpy as np
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -14,7 +15,7 @@ def check_landmark(landmark):
         checked_landmark = None
     return checked_landmark
 
-def holistic_detect(holistic, image):
+def holistic_detect(holistic, image) -> tuple[dict, np.ndarray]:
     image.flags.writeable = False
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     results = holistic.process(image)

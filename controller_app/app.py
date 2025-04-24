@@ -35,17 +35,17 @@ class ControllerApp(tk.Tk):
         self.toggled_commands = {} # {id: command_str}
         self.untriggred_data_label = None
         self.last_untriggred_id = None
-        
-        self.client = None
-        self.ip_finder = IPFinder()
-        self.last_found_ip = None
 
         self.show_frames: dict = {} # {name: frame}
         self.step_buttons: list[tk.Button] = []
         self.selected_step: int | None = None
         self.running_step_command_id: int | None = None
+        
+        self.client = None
+        self.ip_finder = IPFinder()
+        self.last_found_ip = None
 
-    def init_keys(self):
+    def init_keys(self) -> None:
         self.bind("<Left>", lambda event: self.send_move_command(MOVE_LEFT_COMMAND))
         self.bind("<Right>", lambda event: self.send_move_command(MOVE_RIGHT_COMMAND))
         self.bind("<Up>", lambda event: self.send_move_command(MOVE_FORWARD_COMMAND))
@@ -56,7 +56,7 @@ class ControllerApp(tk.Tk):
         self.bind("<KeyRelease>", lambda event: self.send_move_command(STOP_MOVING_COMMAND))
         self.focus_set()
 
-    def change_frame(self, frame: tk.Frame, new_title: str = None):
+    def change_frame(self, frame: tk.Frame, new_title: str = None) -> None:
         for widget in self.winfo_children():
             if isinstance(widget, tk.Frame):
                 widget.pack_forget()
@@ -64,19 +64,19 @@ class ControllerApp(tk.Tk):
         if new_title is not None:
             self.title(new_title)
 
-    def magic_connect(self):
+    def magic_connect(self) -> None:
         found_ip = self.ip_finder.get_ip()
         if found_ip:
             self.connect(found_ip)
         else:
             messagebox.showerror("Error", "Robot not found")
 
-    def init_frames(self):
+    def init_frames(self) -> None:
         self.init_ip_frame()
         self.init_control_frame()
         # The shows menu frame will be initalized when loaded
 
-    def init_ip_frame(self):
+    def init_ip_frame(self) -> None:
         self.ip_frame = tk.Frame(self)
 
         self.ip_label = tk.Label(self.ip_frame, text="Enter IP")
@@ -99,7 +99,7 @@ class ControllerApp(tk.Tk):
         self.magic_connect_button.pack(pady=5)
 
 
-    def init_control_frame(self):
+    def init_control_frame(self) -> None:
         self.control_frame = tk.Frame(self)
         self.is_servos_mirrored = tk.BooleanVar()
         self.is_current_triggred = tk.BooleanVar()
@@ -170,7 +170,7 @@ class ControllerApp(tk.Tk):
         )
         self.shows_menu_button.grid(row=0, column=3)
 
-    def load_shows_menu(self, show_names: str | None):
+    def load_shows_menu(self, show_names: str | None) -> None:
         if show_names is None:
             return
         
@@ -197,7 +197,7 @@ class ControllerApp(tk.Tk):
         
         self.change_frame(self.shows_menu_frame)
     
-    def load_show_menu(self, show_name: str, step_names: str | None):
+    def load_show_menu(self, show_name: str, step_names: str | None) -> None:
         if step_names is None:
             return
         self.selected_step = None
@@ -255,7 +255,7 @@ class ControllerApp(tk.Tk):
 
         self.change_frame(frame)
     
-    def select_step(self, step_index: int):
+    def select_step(self, step_index: int) -> None:
         step_button = self.step_buttons[step_index]
         # If step is already select, then unselect it
         if self.selected_step == step_index:
@@ -268,19 +268,19 @@ class ControllerApp(tk.Tk):
         self.default_all_steps()
         self.step_buttons[step_index].config(bg=GREEN)
     
-    def default_all_steps(self):
+    def default_all_steps(self) -> None:
         for button in self.step_buttons:
             button.config(bg=DEFAULT_BUTTON_COLOR)
 
-    def get_robot_data(self):
+    def get_robot_data(self) -> None:
         self.client.get_command_value(GET_NAME_COMMAND, on_return=self.got_name)
     
-    def got_name(self, name: str | None):
+    def got_name(self, name: str | None) -> None:
         if name is None:
             return
         self.title(name)
 
-    def loop(self):
+    def loop(self) -> None:
         if not self.client or not self.client.is_connected:
             self.is_connected_label.config(text="Disconnected", bg=RED)
         else:
@@ -299,7 +299,7 @@ class ControllerApp(tk.Tk):
         self.update_commands_data()
         self.after(100, self.loop)
     
-    def update_commands_data(self):
+    def update_commands_data(self) -> None:
         for widget in self.table_frame.winfo_children():
             if self.untriggred_data_label and widget == self.untriggred_data_label:
                 continue
@@ -330,8 +330,7 @@ class ControllerApp(tk.Tk):
             value_label = tk.Label(self.table_frame, text=value)
             value_label.grid(row=row + 1, column=2, padx=20)
 
-
-    def send_command(self, command: str = None, is_triggred: bool = None):
+    def send_command(self, command: str = None, is_triggred: bool = None) -> int:
         if not self.client:
             return
         if not command:
@@ -345,7 +344,7 @@ class ControllerApp(tk.Tk):
 
         return command_id
 
-    def send_move_command(self, command: str):
+    def send_move_command(self, command: str) -> None:
         if not self.is_moving_mode.get():
             return
         if self.current_move_command and self.current_move_command == command:
@@ -356,7 +355,7 @@ class ControllerApp(tk.Tk):
         else:
             self.current_move_command = command
     
-    def send_servos_control_command(self, angle: int):
+    def send_servos_control_command(self, angle: int) -> None:
         servo_index = self.servo_index_slider.get()
         if not self.is_servos_mirrored.get():
             command = SERVO_CONTROL_COMMAND.replace("<index>", str(servo_index)).replace("<angle>", str(angle))
@@ -368,29 +367,29 @@ class ControllerApp(tk.Tk):
             self.servo_angles[servo_index] = angle
             self.servo_angles[servo_index + 3] = angle
     
-    def send_show_playing_command(self, command: str):
+    def send_show_playing_command(self, command: str) -> None:
         self.selected_step = None
         self.default_all_steps()
         self.send_command(command)
         self.running_step_command_id = self.send_command(GET_RUNNING_STEP, True)
 
-    def change_servo_index(self, index: str):
+    def change_servo_index(self, index: str) -> None:
         angle = self.servo_angles[int(index)]
         self.servos_control_slider.set(angle)
 
-    def change_is_mirrored(self):
+    def change_is_mirrored(self) -> None:
         if self.is_servos_mirrored.get():
             self.servo_index_slider.config(to=2)
         else:
             self.servo_index_slider.config(to=6)
 
-    def remove_command(self, command_id: int):
+    def remove_command(self, command_id: int) -> None:
         self.client.remove_command(command_id)
     
-    def remove_all(self):
+    def remove_all(self) -> None:
         self.client.remove_all_commands()
 
-    def connect(self, address_str: str = None):
+    def connect(self, address_str: str = None) -> None:
         try:
             if not address_str:
                 address_str = self.ip_entry.get()
@@ -409,7 +408,7 @@ class ControllerApp(tk.Tk):
         self.table_frame.grid(pady=20)
         self.loop()
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         if self.client:
             self.client.running = False
             self.client.join()
@@ -417,7 +416,7 @@ class ControllerApp(tk.Tk):
         self.change_frame(self.ip_frame, DEFAULT_TITLE)
         self.is_connected_label.config(text="Disconnected", bg=RED)
 
-    def on_closing(self):
+    def on_closing(self) -> None:
         if self.client:
             self.client.running = False
             self.client.join()
@@ -425,7 +424,7 @@ class ControllerApp(tk.Tk):
         self.destroy()
 
 
-def main():
+def main() -> None:
     app = ControllerApp()
     app.mainloop()
 

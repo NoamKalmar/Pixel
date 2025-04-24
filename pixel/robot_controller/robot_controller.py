@@ -27,17 +27,17 @@ class RobotController:
         self_ip = socket.gethostbyname(socket.gethostname())
         self.self_address = (self_ip, SERVER_PORT)
 
-    def init_cap(self):
+    def init_cap(self) -> None:
         if self.cap is not None:
             self.cap.release()
         self.cap = cv2.VideoCapture(self.cap_index, cv2.CAP_DSHOW)
     
-    def start(self):
+    def start(self) -> None:
         self.server_thread.start()
         self.broadcast_ip_thread.start()
         self.robot_loop()
 
-    def robot_loop(self):
+    def robot_loop(self) -> None:
         try:
             while self.cap.isOpened():
                 key = cv2.waitKey(5)
@@ -52,7 +52,7 @@ class RobotController:
             self.running = False
             self.cap.release()
 
-    def exec_commands(self):
+    def exec_commands(self) -> None:
         for command in self.commands:
             if not command.is_toggled and command.evaluated:
                 continue
@@ -66,7 +66,7 @@ class RobotController:
             command.evaluated = True
             command.return_value = value
 
-    def broadcast_ip(self):
+    def broadcast_ip(self) -> None:
         while self.running:
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as broadcast_socket:
                 broadcast_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -75,7 +75,7 @@ class RobotController:
                     broadcast_socket.sendto(message, BROADCAST_ADDRESS)
                     time.sleep(1)
 
-    def send_live_data(self, conn: socket.socket):
+    def send_live_data(self, conn: socket.socket) -> None:
         while self.running and self.client_connected:
             if not isinstance(conn, socket.socket):
                 break
@@ -87,7 +87,7 @@ class RobotController:
 
             time.sleep(0.1)
 
-    def handle_client(self, conn: socket.socket):
+    def handle_client(self, conn: socket.socket) -> None:
         while self.running:
             try:
                 data = conn.recv(1024)
@@ -124,7 +124,7 @@ class RobotController:
 
             self.commands.append(protocol_data)
 
-    def server_loop(self):
+    def server_loop(self) -> None:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
             server_socket.bind(SERVER_ADDRESS)
             server_socket.listen(1)

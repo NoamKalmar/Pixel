@@ -53,7 +53,7 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-def main():
+def main() -> None:
     args = parse_args()
     videos = read_emotion_videos(emotion_video_paths)
     servos_manager = None

@@ -30,11 +30,7 @@ class Client(threading.Thread):
         self.got_data_time = None
         self.is_connected = False
 
-    def set_address(self, ip, port):
-        self.ip = ip
-        self.port = port
-
-    def run(self):
+    def run(self) -> None:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as self.socket:
             try:
                 self.socket.connect((self.ip, self.port))
@@ -59,17 +55,17 @@ class Client(threading.Thread):
                 except:
                     pass
 
-    def send_command(self, command: str, is_toggled: bool):
+    def send_command(self, command: str, is_toggled: bool) -> None:
         message = client_protocol.send_command(self.current_command_id, command, is_toggled)
         self.socket.sendall(message)
         self.current_command_id += 1
         return self.current_command_id - 1
     
-    def remove_command(self, command_id: int):
+    def remove_command(self, command_id: int) -> None:
         message = client_protocol.send_remove_command(command_id)
         self.socket.sendall(message)
     
-    def remove_all_commands(self):
+    def remove_all_commands(self) -> None:
         message = client_protocol.remove_all_commands()
         self.socket.sendall(message)
     
@@ -81,7 +77,7 @@ class Client(threading.Thread):
             command: str, 
             return_value_object: Optional[CommandReturnValue] = None, 
             on_return: Optional[Callable] = None
-        ):
+        ) -> None:
         command_return_thread = threading.Thread(
             target=self._get_command_value,
             args=(command, return_value_object, on_return)
@@ -94,7 +90,7 @@ class Client(threading.Thread):
             return_value_object: Optional[CommandReturnValue],
             on_return: Optional[Callable],
             timeout: float = 2
-        ):
+        ) -> None:
         command_id = self.send_command(command, False)
         start_time = time.time()
         while not self.got_command_response(command_id):

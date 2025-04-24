@@ -25,7 +25,7 @@ def get_command(data: bytes) -> Command | int | None:
     return command
 
 # id;data//id;data//...#
-def send_data(commands: list[Command]):
+def send_data(commands: list[Command]) -> bytes:
     message = ""
     for command in commands:
         if command.return_value == "":
@@ -35,7 +35,7 @@ def send_data(commands: list[Command]):
     return bytes(message, "utf-8")
 
 # pixel-<self_ip>:<self_port>
-def broadcast_ip(self_address: tuple):
+def broadcast_ip(self_address: tuple) -> bytes:
     ip, port = self_address
     message = f"pixel-{ip}:{port}"
     return bytes(message, "utf-8")

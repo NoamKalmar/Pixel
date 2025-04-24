@@ -79,7 +79,7 @@ class ServosManager:
             self.servos[index].stop_moving_event.set()
             # self.servos[index].movement_thread = None
     
-    def move_servo(self, index: int, target_angle: int, rate: int = 0.01, step: int = 1):
+    def move_servo(self, index: int, target_angle: int, rate: int = 0.01, step: int = 1) -> None:
         current_angle = self.servos[index].current_angle
         step = step if target_angle > current_angle else -step
         sequence = range(self.servos[index].current_angle, target_angle + 1, step)
@@ -160,10 +160,10 @@ class RobotServosManager(ServosManager):
         self.move_right_hand(angles)
         self.move_left_hand(angles)
 
-    def move_head(self, angle: int, rate: float = 0.02):
+    def move_head(self, angle: int, rate: float = 0.02) -> None:
         self.move_servo(6, angle, rate)
 
-    def load_gestures(self, gestures_folder_path: str):
+    def load_gestures(self, gestures_folder_path: str) -> None:
         gesture_file_paths = glob.glob(f"{gestures_folder_path}/*.json")
         for file_path in gesture_file_paths:
             # convert {gestures_folder_path}/*.json to just the *
@@ -172,23 +172,23 @@ class RobotServosManager(ServosManager):
                 gesture = json.load(file)
                 self.gestures[gesture_name] = gesture
     
-    def play_right_gesture(self, name: str):
+    def play_right_gesture(self, name: str) -> None:
         gesture = self.gestures[name]
         self.play_sequence(0, gesture["angle1"], gesture["rate"])
         self.play_sequence(1, gesture["angle2"], gesture["rate"])
         self.play_sequence(2, gesture["angle3"], gesture["rate"])
         
-    def play_left_gesture(self, name: str):
+    def play_left_gesture(self, name: str) -> None:
         gesture = self.gestures[name]
         self.play_sequence(3, gesture["angle1"], gesture["rate"])
         self.play_sequence(4, gesture["angle2"], gesture["rate"])
         self.play_sequence(5, gesture["angle3"], gesture["rate"])
     
-    def play_hands_gesture(self, name: str):
+    def play_hands_gesture(self, name: str) -> None:
         self.play_right_gesture(name)
         self.play_left_gesture(name)
     
-    def switch_move(self, angles1: tuple[int], angles2: tuple[int], rate: float = 0.01):
+    def switch_move(self, angles1: tuple[int], angles2: tuple[int], rate: float = 0.01) -> None:
         self.move_left_hand(angles1, rate=rate)
         self.move_right_hand(angles2, rate=rate)
         self.wait_while_moving()
@@ -196,12 +196,12 @@ class RobotServosManager(ServosManager):
         self.move_right_hand(angles1, rate=rate)
         self.wait_while_moving()
 
-    def move_right_path(self, angles_path: tuple[tuple[int]], rate=0.01):
+    def move_right_path(self, angles_path: tuple[tuple[int]], rate=0.01) -> None:
         for angles in angles_path:
             self.move_right_hand(angles, rate)
             self.wait_while_moving()
     
-    def move_left_path(self, angles_path: tuple[tuple[int]], rate=0.01):
+    def move_left_path(self, angles_path: tuple[tuple[int]], rate=0.01) -> None:
         for angles in angles_path:
             self.move_left_hand(angles, rate)
             self.wait_while_moving()

@@ -1,5 +1,3 @@
-import socket
-
 # -;-
 def remove_all_commands():
     return b"-;-#"
