@@ -1,4 +1,4 @@
-@REM Building using pyinstaller and keeping only the exe
+@echo off
 pyinstaller app.py --windowed --onefile -i "icon.png" -n "Pixel Controller"
 copy "dist\Pixel Controller.exe" .
 rmdir /s /q build

@@ -256,6 +256,8 @@ class ControllerApp(tk.Tk):
         self.change_frame(frame)
     
     def select_step(self, step_index: int) -> None:
+        if self.running_step_command_id is not None: # Show is already running
+            return
         step_button = self.step_buttons[step_index]
         # If step is already select, then unselect it
         if self.selected_step == step_index:
