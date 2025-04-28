@@ -7,10 +7,12 @@ import threading
 import json
 import time
 import mediapipe as mp
+from pyfirmata import util
 
 from landmarks import detect_landmarks, pose_landmarks, face_landmarks
 from robot.servos_manager import RobotServosManager
 from robot.motors_manager import RobotMotorsManager
+from robot.mpu import MPU_z
 from robot.show import Show
 from landmarks import emotion_recognition
 
@@ -20,12 +22,17 @@ class Robot:
             holistic: mp.solutions.holistic,
             servos_manager: Optional[RobotServosManager],
             motors_manager: Optional[RobotMotorsManager],
+            mpu_z: Optional[MPU_z],
             name: str = "Robot"
     ):
         self.holistic = holistic
         self.name = name
         self.servos_manager = servos_manager
         self.motors_manager = motors_manager
+        self.mpu_z = mpu_z
+        self.mpu_z.enable_reporting()
+        it = util.Iterator(self.mpu_z.board)
+        it.start()
         self.loop_functions: set[Callable] = set()
         self.angles = [[] for _ in range(7)]
         self.unwanted_boxes = []
@@ -42,6 +49,11 @@ class Robot:
         self.stop_show_event = threading.Event()
         
     def loop(self, frame: np.ndarray, display_frame: bool) -> tuple:
+        # print(100)
+        # self.mpu_z.board.iterate()
+        # print(200)
+        print(self.mpu_z.read())
+        # print(300)
         if frame is None:
             return
         self.landmarks, self.current_frame = detect_landmarks.holistic_detect(self.holistic, frame)

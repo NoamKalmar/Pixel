@@ -4,7 +4,7 @@ import cv2
 import mediapipe as mp
 from pyfirmata import ArduinoMega
 
-from robot import Robot, RobotMotorsManager, RobotServosManager
+from robot import Robot, RobotMotorsManager, RobotServosManager, MPU_z
 from robot_controller import RobotController
 import shows    
 
@@ -58,6 +58,7 @@ def main() -> None:
     videos = read_emotion_videos(emotion_video_paths)
     servos_manager = None
     motors_manager = None
+    mpu_z = None
     if not args.sim:
         board = ArduinoMega(PORT)
         servos_manager = RobotServosManager(board, RIGHT_HAND_PINS, LEFT_HAND_PINS, HEAD_PIN)
@@ -66,12 +67,14 @@ def main() -> None:
                                             RIGHT_MOTOR_PINS, 
                                             BACK_MOTOR_PINS, 
                                             FRONT_MOTOR_PINS)
+        mpu_z = MPU_z(board)
     
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
         pixel = Robot(
             holistic=holistic,
             motors_manager=motors_manager, 
             servos_manager=servos_manager, 
+            mpu_z=mpu_z,
             name=ROBOT_NAME
         )
         pixel.load_shows(SHOWS)
