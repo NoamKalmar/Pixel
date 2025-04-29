@@ -30,9 +30,7 @@ class Robot:
         self.servos_manager = servos_manager
         self.motors_manager = motors_manager
         self.mpu_z = mpu_z
-        self.mpu_z.enable_reporting()
-        it = util.Iterator(self.mpu_z.board)
-        it.start()
+        self.mpu_z.init(True)
         self.loop_functions: set[Callable] = set()
         self.angles = [[] for _ in range(7)]
         self.unwanted_boxes = []
@@ -49,11 +47,7 @@ class Robot:
         self.stop_show_event = threading.Event()
         
     def loop(self, frame: np.ndarray, display_frame: bool) -> tuple:
-        # print(100)
-        # self.mpu_z.board.iterate()
-        # print(200)
-        print(self.mpu_z.read())
-        # print(300)
+        self.mpu_z.get_angle()
         if frame is None:
             return
         self.landmarks, self.current_frame = detect_landmarks.holistic_detect(self.holistic, frame)
@@ -273,3 +267,7 @@ class Robot:
     def get_running_step_index(self) -> int:
         """If a show step is currently currning, returns its index, else return -1"""
         return self.current_running_step_index
+
+    def get_angle(self) -> int:
+        """Returns the robot current relative angle"""
+        return self.mpu_z.get_angle()

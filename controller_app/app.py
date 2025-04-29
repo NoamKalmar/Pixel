@@ -40,6 +40,7 @@ class ControllerApp(tk.Tk):
         self.step_buttons: list[tk.Button] = []
         self.selected_step: int | None = None
         self.running_step_command_id: int | None = None
+        self.angle_command_id: int | None = None
         
         self.client = None
         self.ip_finder = IPFinder()
@@ -170,6 +171,9 @@ class ControllerApp(tk.Tk):
         )
         self.shows_menu_button.grid(row=0, column=3)
 
+        self.angle_label = tk.Label(self.control_frame, text="")
+        self.angle_label.grid(row=1, column=3)
+
     def load_shows_menu(self, show_names: str | None) -> None:
         if show_names is None:
             return
@@ -276,6 +280,7 @@ class ControllerApp(tk.Tk):
 
     def get_robot_data(self) -> None:
         self.client.get_command_value(GET_NAME_COMMAND, on_return=self.got_name)
+        self.angle_command_id = self.send_command(GET_ANGLE_COMMAND, True, False)
     
     def got_name(self, name: str | None) -> None:
         if name is None:
@@ -289,6 +294,8 @@ class ControllerApp(tk.Tk):
             self.is_connected_label.config(text="Connected", bg=GREEN)
         if not self.client:
             return
+        if self.client.got_command_response(self.angle_command_id):
+            self.angle_label.config(text=f"Angle: {self.client.commands_data[self.angle_command_id]}")
         if self.client.got_command_response(self.running_step_command_id):
             running_step = int(self.client.commands_data[self.running_step_command_id])
             if running_step == -1:
@@ -332,7 +339,7 @@ class ControllerApp(tk.Tk):
             value_label = tk.Label(self.table_frame, text=value)
             value_label.grid(row=row + 1, column=2, padx=20)
 
-    def send_command(self, command: str = None, is_triggred: bool = None) -> int:
+    def send_command(self, command: str = None, is_triggred: bool = None, display: bool = False) -> int:
         if not self.client:
             return
         if not command:
@@ -340,7 +347,8 @@ class ControllerApp(tk.Tk):
             is_triggred = self.is_current_triggred.get()
         command_id = self.client.send_command(command, is_triggred)
         if is_triggred:
-            self.toggled_commands[command_id] = command
+            if display:
+                self.toggled_commands[command_id] = command
         else:
             self.last_untriggred_id = command_id
 
@@ -373,7 +381,7 @@ class ControllerApp(tk.Tk):
         self.selected_step = None
         self.default_all_steps()
         self.send_command(command)
-        self.running_step_command_id = self.send_command(GET_RUNNING_STEP, True)
+        self.running_step_command_id = self.send_command(GET_RUNNING_COMMAND, True, False)
 
     def change_servo_index(self, index: str) -> None:
         angle = self.servo_angles[int(index)]
