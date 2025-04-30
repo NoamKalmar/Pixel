@@ -16,7 +16,7 @@ emotion_video_paths = [f"{emotion_videos_foler_path}/happy.mp4",
 ROBOT_NAME = "pixel"
 
 BAUDRATE = 115200
-PORT = "COM3"
+DEFAULT_PORT = "COM4"
 
 RIGHT_HAND_PINS = (2, 3, 4)
 LEFT_HAND_PINS = (5, 6, 7)
@@ -43,12 +43,17 @@ def parse_args():
     parser.add_argument(
         "--sim", 
         action="store_true", 
-        help="Run without connecting a phyisical Arduino board"
+        help="run without connecting a phyisical Arduino board"
     )
     parser.add_argument(
         "--crash", 
         action="store_true", 
-        help="Crash the program in case an exception is raised when running a command sent by the controller app"
+        help="crash the program in case an exception is raised when running a command sent by the controller app"
+    )
+    parser.add_argument(
+        "-p", 
+        "--port",
+        help="use the arduino board in the specified board (don't include 'COM', only the port number)"
     )
     args = parser.parse_args()
     return args
@@ -60,7 +65,7 @@ def main() -> None:
     motors_manager = None
     mpu_z = None
     if not args.sim:
-        board = ArduinoMega(PORT)
+        board = ArduinoMega(f"COM{args.port}" if args.port is not None else DEFAULT_PORT)
         servos_manager = RobotServosManager(board, RIGHT_HAND_PINS, LEFT_HAND_PINS, HEAD_PIN)
         motors_manager = RobotMotorsManager(board, 
                                             LEFT_MOTOR_PINS, 
