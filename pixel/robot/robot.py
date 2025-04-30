@@ -47,7 +47,6 @@ class Robot:
         self.stop_show_event = threading.Event()
         
     def loop(self, frame: np.ndarray, display_frame: bool) -> tuple:
-        self.mpu_z.get_angle()
         if frame is None:
             return
         self.landmarks, self.current_frame = detect_landmarks.holistic_detect(self.holistic, frame)

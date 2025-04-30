@@ -16,7 +16,7 @@ emotion_video_paths = [f"{emotion_videos_foler_path}/happy.mp4",
 ROBOT_NAME = "pixel"
 
 BAUDRATE = 115200
-PORT = "COM4"
+PORT = "COM3"
 
 RIGHT_HAND_PINS = (2, 3, 4)
 LEFT_HAND_PINS = (5, 6, 7)

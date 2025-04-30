@@ -860,7 +860,7 @@ void loop()
         analogPin = PIN_TO_ANALOG(pin);
         if (analogInputsToReport & (1 << analogPin)) {
           if (analogPin == MPU_Z_PIN) {
-            Firmata.sendAnalog(analogPin, angle);
+            Firmata.sendAnalog(analogPin, (int)angle);
           }
           else {
             Firmata.sendAnalog(analogPin, analogRead(analogPin));
