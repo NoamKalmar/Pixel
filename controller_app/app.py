@@ -339,16 +339,17 @@ class ControllerApp(tk.Tk):
             value_label = tk.Label(self.table_frame, text=value)
             value_label.grid(row=row + 1, column=2, padx=20)
 
-    def send_command(self, command: str = None, is_triggred: bool = None, display: bool = False) -> int:
+    def send_command(self, command: str = None, is_triggred: bool = None, display: bool = True) -> int:
         if not self.client:
             return
         if not command:
             command = self.command_entry.get()
             is_triggred = self.is_current_triggred.get()
         command_id = self.client.send_command(command, is_triggred)
+        if not display:
+            return
         if is_triggred:
-            if display:
-                self.toggled_commands[command_id] = command
+            self.toggled_commands[command_id] = command
         else:
             self.last_untriggred_id = command_id
 

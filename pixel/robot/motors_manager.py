@@ -1,8 +1,10 @@
-from pyfirmata import Arduino, ArduinoMega, PWM, OUTPUT
+from pyfirmata import Board, PWM, OUTPUT
 import time
+from typing import Optional, Literal
+from robot.mpu import MPU_z
 
 class MotorsManager:
-    def __init__(self, arduino: Arduino | ArduinoMega, pins: list):
+    def __init__(self, arduino: Board, pins: list):
         self.arduino = arduino
         self.pins = pins
         self.init_motors()
@@ -33,15 +35,17 @@ class MotorsManager:
 class RobotMotorsManager(MotorsManager):
     def __init__(
             self, 
-            arduino: Arduino | ArduinoMega, 
+            arduino: Board, 
             left_motor_pins: tuple,
             right_motor_pins: tuple,
             back_motor_pins: tuple, 
-            front_motor_pins: tuple
+            front_motor_pins: tuple,
+            mpu_z: Optional[MPU_z] = None
         ):
         pins = [left_motor_pins, right_motor_pins, back_motor_pins, front_motor_pins]
         super().__init__(arduino, pins)
         self.status = 0 # 0 - Not moving, 1 - moving x, 2 - moving y
+        self.mpu_z = mpu_z
     
     def move_x(self, velocity: int = 255, stop_if_change: bool = False, stop_time: float = 1) -> None:
         self.turn_motor(0, 0)
@@ -82,4 +86,15 @@ class RobotMotorsManager(MotorsManager):
         time.sleep(turn_time)
         self.turn(-velocity)
         time.sleep(turn_time)
+        self.stop_moving()
+
+    def turn_to(self, target_angle: int, direction: Literal["right", "left", "shortest"] = "shortest"):
+        while True:
+            distance, to_direction = self.mpu_z.distance_to(target_angle)
+            velocity = 100 + 0.1 * distance ** 2
+            if direction == "shortest": direction = to_direction
+            if direction == "left": velocity = -velocity
+            self.turn(velocity)
+            if distance < 10:
+                break
         self.stop_moving()

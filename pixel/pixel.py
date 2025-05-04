@@ -66,13 +66,14 @@ def main() -> None:
     mpu_z = None
     if not args.sim:
         board = ArduinoMega(f"COM{args.port}" if args.port is not None else DEFAULT_PORT)
+        mpu_z = MPU_z(board)
         servos_manager = RobotServosManager(board, RIGHT_HAND_PINS, LEFT_HAND_PINS, HEAD_PIN)
         motors_manager = RobotMotorsManager(board, 
                                             LEFT_MOTOR_PINS, 
                                             RIGHT_MOTOR_PINS, 
                                             BACK_MOTOR_PINS, 
-                                            FRONT_MOTOR_PINS)
-        mpu_z = MPU_z(board)
+                                            FRONT_MOTOR_PINS,
+                                            mpu_z)
     
     with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
         pixel = Robot(
