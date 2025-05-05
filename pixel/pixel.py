@@ -67,6 +67,7 @@ def main() -> None:
     if not args.sim:
         board = ArduinoMega(f"COM{args.port}" if args.port is not None else DEFAULT_PORT)
         mpu_z = MPU_z(board)
+        mpu_z.init()
         servos_manager = RobotServosManager(board, RIGHT_HAND_PINS, LEFT_HAND_PINS, HEAD_PIN)
         motors_manager = RobotMotorsManager(board, 
                                             LEFT_MOTOR_PINS, 

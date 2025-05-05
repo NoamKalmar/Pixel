@@ -30,7 +30,6 @@ class Robot:
         self.servos_manager = servos_manager
         self.motors_manager = motors_manager
         self.mpu_z = mpu_z
-        self.mpu_z.init(True)
         self.loop_functions: set[Callable] = set()
         self.angles = [[] for _ in range(7)]
         self.unwanted_boxes = []
