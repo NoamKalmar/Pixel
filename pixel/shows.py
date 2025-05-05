@@ -12,15 +12,10 @@ def setup(robot: Robot):
 def waking_up(robot: Robot):
     # Head move
     robot.servos_manager.move_head(0)
-    robot.servos_manager.wait_while_moving()
     sleep(3)
     robot.servos_manager.move_head(90)
-    robot.servos_manager.wait_while_moving()
     # Hands Move
-    robot.servos_manager.move_left_hand(HAND_UP)
-    robot.servos_manager.wait_while_moving()
-    robot.servos_manager.move_right_hand(HAND_UP)
-    robot.servos_manager.wait_while_moving()
+    robot.servos_manager.move_hands_same(HAND_UP)
     sleep(1)
     robot.servos_manager.set_hands(MUSCLE)
     sleep(1)
@@ -29,7 +24,6 @@ def robot_move(robot: Robot):
     robot.servos_manager.switch_move((0, 0, 90), (0, 180, 90), 0.01)
     sleep(1)
     robot.servos_manager.move_right_hand((0, 180, 90), rate=0.005)
-    robot.servos_manager.wait_while_moving()
     sleep(0.5)
 
 def turn(robot: Robot):

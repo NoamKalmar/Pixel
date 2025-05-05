@@ -8,8 +8,6 @@ import glob
 import json
 from itertools import zip_longest
 
-PROGRESS_THRESHOLD = 2
-
 @dataclass
 class Servo:
     pin: int
@@ -31,9 +29,7 @@ class ServosManager:
             self.arduino.digital[pin].mode = SERVO
             self.write_servo(i, self.default_angle)
 
-    def write_servo(self, index: int, angle: int, part_of_move: bool = False) -> None:
-        if not part_of_move:
-            self._stop_moving(index)
+    def write_servo(self, index: int, angle: int) -> None:
         angle = max(min(angle, 180), 0) # Keep angle between 0 and 180
         writing_angle = angle
         if self.servos[index].is_mirrored:
@@ -41,8 +37,8 @@ class ServosManager:
         self.arduino.digital[self.servos[index].pin].write(writing_angle)
         self.servos[index].current_angle = angle
 
-    def write_servos(self, indexes: list[int], angle: int):
-        for index in indexes:
+    def write_servos(self, indexes: list[int], angles: tuple[int]):
+        for index, angle in zip(indexes, angles):
             self.write_servo(index, angle)
 
     def write_all(self, angle: int) -> None:
@@ -54,11 +50,11 @@ class ServosManager:
 
     def play_sequences(self, indexes: tuple[int], sequences: tuple[Iterable], rate: float = 0.01) -> None:
         for sequence in zip_longest(*sequences):
-            for index in indexes:
-                angle = sequence[index]
-                if sequence[index] is None:
+            for i, servo_index in enumerate(indexes):
+                angle = sequence[i]
+                if sequence[i] is None:
                     continue
-                self.write_servo(index, angle, True)
+                self.write_servo(servo_index, angle)
             time.sleep(rate)
     
     def move_servos(self, index_to_angle: dict[int, int], rate: int = 0.01, step: int = 1) -> None:
@@ -72,6 +68,9 @@ class ServosManager:
         self.play_sequences(index_to_angle.keys(), sequences, rate)
 
 class RobotServosManager(ServosManager):
+    RIGHT_HAND_INDEXES = (0, 1, 2)
+    LEFT_HAND_INDEXES = (3, 4, 5)
+    HEAD_INDEX = 6
     def __init__(self, 
                  arduino: Arduino | ArduinoMega, 
                  right_hand_pins: tuple,
@@ -84,38 +83,32 @@ class RobotServosManager(ServosManager):
         self.gestures = {}
 
     def set_right_hand(self, angles: tuple[int]) -> None:
-        self.write_servo(0, angles[0])
-        self.write_servo(1, angles[1])
-        self.write_servo(2, angles[2])
+        self.write_servos(self.RIGHT_HAND_INDEXES, angles)
 
     def set_left_hand(self, angles: tuple[int]) -> None:
-        self.write_servo(3, angles[0])
-        self.write_servo(4, angles[1])
-        self.write_servo(5, angles[2])
+        self.write_servos(self.LEFT_HAND_INDEXES, angles)
 
     def set_hands(self, angles: tuple[int]) -> None:
         self.set_right_hand(angles)
         self.set_left_hand(angles)
     
     def set_head(self, angle: int) -> None:
-        self.write_servo(6, angle)
+        self.write_servo(self.HEAD_INDEX, angle)
         
     def move_right_hand(self, angles: tuple[int], rate: float = 0.01) -> None:
-        self.move_servo(0, angles[0], rate)
-        self.move_servo(1, angles[1], rate)
-        self.move_servo(2, angles[2], rate)
+        self.move_servos(dict(zip(self.RIGHT_HAND_INDEXES, angles)), rate)
 
     def move_left_hand(self, angles: tuple[int], rate: float = 0.01) -> None:
-        self.move_servo(3, angles[0], rate)
-        self.move_servo(4, angles[1], rate)
-        self.move_servo(5, angles[2], rate)
+        self.move_servos(dict(zip(self.LEFT_HAND_INDEXES, angles)), rate)
+    
+    def move_hands(self, right_angles: tuple[int], left_angles: tuple[int], rate: float = 0.01) -> None:
+        self.move_servos(dict(zip(self.RIGHT_HAND_INDEXES + self.LEFT_HAND_INDEXES, right_angles + left_angles)), rate)
 
-    def move_hands(self, angles: tuple[int], rate: float = 0.01) -> None:
-        self.move_right_hand(angles)
-        self.move_left_hand(angles)
+    def move_hands_same(self, angles: tuple[int], rate: float = 0.01) -> None:
+        self.move_hands(angles, angles, rate)
 
     def move_head(self, angle: int, rate: float = 0.02) -> None:
-        self.move_servo(6, angle, rate)
+        self.move_servos({self.HEAD_INDEX: angle}, rate)
 
     def load_gestures(self, gestures_folder_path: str) -> None:
         gesture_file_paths = glob.glob(f"{gestures_folder_path}/*.json")
@@ -143,19 +136,13 @@ class RobotServosManager(ServosManager):
         self.play_left_gesture(name)
     
     def switch_move(self, angles1: tuple[int], angles2: tuple[int], rate: float = 0.01) -> None:
-        self.move_left_hand(angles1, rate=rate)
-        self.move_right_hand(angles2, rate=rate)
-        self.wait_while_moving()
-        self.move_left_hand(angles2, rate=rate)
-        self.move_right_hand(angles1, rate=rate)
-        self.wait_while_moving()
+        self.move_hands(angles1, angles2, rate)
+        self.move_hands(angles2, angles1, rate)
 
     def move_right_path(self, angles_path: tuple[tuple[int]], rate=0.01) -> None:
         for angles in angles_path:
             self.move_right_hand(angles, rate)
-            self.wait_while_moving()
     
     def move_left_path(self, angles_path: tuple[tuple[int]], rate=0.01) -> None:
         for angles in angles_path:
             self.move_left_hand(angles, rate)
-            self.wait_while_moving()

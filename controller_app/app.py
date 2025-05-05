@@ -346,12 +346,11 @@ class ControllerApp(tk.Tk):
             command = self.command_entry.get()
             is_triggred = self.is_current_triggred.get()
         command_id = self.client.send_command(command, is_triggred)
-        if not display:
-            return
-        if is_triggred:
-            self.toggled_commands[command_id] = command
-        else:
-            self.last_untriggred_id = command_id
+        if display:
+            if is_triggred:
+                self.toggled_commands[command_id] = command
+            else:
+                self.last_untriggred_id = command_id
 
         return command_id
 
@@ -383,7 +382,8 @@ class ControllerApp(tk.Tk):
         self.default_all_steps()
         self.send_command(command)
         self.running_step_command_id = self.send_command(GET_RUNNING_COMMAND, True, False)
-
+        print(self.running_step_command_id)
+        
     def change_servo_index(self, index: str) -> None:
         angle = self.servo_angles[int(index)]
         self.servos_control_slider.set(angle)
