@@ -14,12 +14,7 @@ PROGRESS_THRESHOLD = 2
 class Servo:
     pin: int
     current_angle: int = 0
-    is_moving: bool = False
-    should_stop_moving: bool = False
     is_mirrored: bool = False
-    last_progress: float = field(default_factory=time.time)
-    stop_moving_event: threading.Event = field(default_factory=threading.Event) # Needed for thread synchronization
-    movement_thread: Optional[threading.Thread] = None
 
 
 class ServosManager:
@@ -56,14 +51,6 @@ class ServosManager:
 
     def write_default(self) -> None:
         self.write_all(self.default_angle)
-
-    def play_sequence(self, index: int, sequence: Iterable, rate: float = 0.01) -> None:
-        if rate > PROGRESS_THRESHOLD - 0.1:
-            rate = PROGRESS_THRESHOLD - 0.1
-        self._stop_moving(index)
-        movement_thread = threading.Thread(target=self._play_sequence, args=(index, sequence, rate))
-        self.servos[index].movement_thread = movement_thread
-        movement_thread.start()
 
     def play_sequences(self, indexes: tuple[int], sequences: tuple[Iterable], rate: float = 0.01) -> None:
         for sequence in zip_longest(*sequences):
