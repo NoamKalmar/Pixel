@@ -6,6 +6,7 @@ from collections.abc import Iterable
 from typing import Optional
 import glob
 import json
+from itertools import zip_longest
 
 PROGRESS_THRESHOLD = 2
 
@@ -64,58 +65,24 @@ class ServosManager:
         self.servos[index].movement_thread = movement_thread
         movement_thread.start()
 
-    def _play_sequence(self, index: int, sequence: Iterable, rate: float = 0.01) -> None:
-        self.servos[index].is_moving = True
-        self.servos[index].stop_moving_event.clear()
-        try:
-            for angle in sequence:
-                if self.servos[index].should_stop_moving:
-                    break
+    def play_sequences(self, indexes: tuple[int], sequences: tuple[Iterable], rate: float = 0.01) -> None:
+        for sequence in zip_longest(*sequences):
+            for index in indexes:
+                angle = sequence[index]
+                if sequence[index] is None:
+                    continue
                 self.write_servo(index, angle, True)
-                self.servos[index].last_progress = time.time()
-                time.sleep(rate)
-        finally:
-            self.servos[index].is_moving = False
-            self.servos[index].stop_moving_event.set()
-            # self.servos[index].movement_thread = None
+            time.sleep(rate)
     
-    def move_servo(self, index: int, target_angle: int, rate: int = 0.01, step: int = 1) -> None:
-        current_angle = self.servos[index].current_angle
-        step = step if target_angle > current_angle else -step
-        sequence = range(self.servos[index].current_angle, target_angle + 1, step)
-        self.play_sequence(index, sequence, rate)
-
-    def _stop_moving(self, index: int) -> None:
-        if not self.servos[index].is_moving:
-            return
-        self.servos[index].should_stop_moving = True
-        while self.servos[index].is_moving:
-            if self._check_fix_move(index):
-                break
-            self.servos[index].stop_moving_event.wait(0.1) # Wait until the moving thread got the message and stopped
-        self.servos[index].movement_thread = None
-            
-        # if self.servos[index].movement_thread is not None:
-        #     self.servos[index].movement_thread.join()
-        #     self.servos[index].movement_thread = None
-        self.servos[index].should_stop_moving = False
-    
-    def wait_while_moving(self) -> None:
-        for i, servo in enumerate(self.servos):
-            while servo.is_moving:
-                if self._check_fix_move(i):
-                    break
-                servo.stop_moving_event.wait(0.1)
-            # if servo.movement_thread and servo.is_moving and not servo.stop_moving_event.is_set():
-            #     servo.movement_thread.join()
-            #     servo.movement_thread = None
-
-    def _check_fix_move(self, index: int) -> bool:
-        if time.time() - self.servos[index].last_progress > PROGRESS_THRESHOLD:
-            self.servos[index].is_moving = False
-            self.servos[index].stop_moving_event.set()
-            return True
-        return False
+    def move_servos(self, index_to_angle: dict[int, int], rate: int = 0.01, step: int = 1) -> None:
+        sequences = []
+        for index, angle in index_to_angle.items():
+            current_angle = self.servos[index].current_angle
+            sequence_step = step if angle > current_angle else -step
+            to_angle = angle + 1 if sequence_step > 0 else angle -1
+            sequence = range(current_angle, to_angle, sequence_step)
+            sequences.append(sequence)
+        self.play_sequences(index_to_angle.keys(), sequences, rate)
 
 class RobotServosManager(ServosManager):
     def __init__(self, 
