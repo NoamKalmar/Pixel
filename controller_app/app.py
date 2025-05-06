@@ -382,7 +382,6 @@ class ControllerApp(tk.Tk):
         self.default_all_steps()
         self.send_command(command)
         self.running_step_command_id = self.send_command(GET_RUNNING_COMMAND, True, False)
-        print(self.running_step_command_id)
         
     def change_servo_index(self, index: str) -> None:
         angle = self.servo_angles[int(index)]

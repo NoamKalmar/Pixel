@@ -15,7 +15,7 @@ def waking_up(robot: Robot):
     sleep(3)
     robot.servos_manager.move_head(90)
     # Hands Move
-    robot.servos_manager.move_hands_same(HAND_UP)
+    robot.servos_manager.move_hands_mirror(HAND_UP)
     sleep(1)
     robot.servos_manager.set_hands(MUSCLE)
     sleep(1)
@@ -71,16 +71,20 @@ def wait_for_smile(robot: Robot):
         pass
 
 def wait_for_unsmile(robot: Robot):
-    while robot.get_emotion == 0:
+    while robot.get_emotion() == 0:
         pass
 
 def mimic_interaction(robot: Robot): # 40 s
     robot.move_human_x(stop=True)
-    robot.mimic_movements()
+    robot.add_to_loop(robot.mimic_movements)
+    sleep(40)
+    robot.remove_from_loop(robot.mimic_movements)
 
 def full_follow(robot: Robot): # 27 s
     robot.servos_manager.set_hands((HAND_DOWN)) 
-    robot.follow_human()
+    robot.add_to_loop(robot.follow_human)
+    sleep(27)
+    robot.remove_from_loop(robot.remove_from_loop)
 
 def dance(robot: Robot):
     robot.servos_manager.set_hands(MUSCLE)
@@ -111,8 +115,8 @@ MAIN_SHOW = Show(name="main",
                     turn_to_mimic,
                     wait_for_smile,
                     wait_for_unsmile,
-                    (mimic_interaction, 40),
-                    (full_follow, 27),
+                    mimic_interaction,
+                    full_follow,
                     dance,
                     chase,
                  ])

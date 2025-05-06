@@ -37,9 +37,12 @@ class ServosManager:
         self.arduino.digital[self.servos[index].pin].write(writing_angle)
         self.servos[index].current_angle = angle
 
-    def write_servos(self, indexes: list[int], angles: tuple[int]):
+    def write_servos(self, indexes: tuple[int], angles: tuple[int]):
         for index, angle in zip(indexes, angles):
             self.write_servo(index, angle)
+    
+    def write_servos_same(self, indexes: tuple[int], angle: int) -> None:
+        self.write_servos(indexes, [angle] * len(indexes))
 
     def write_all(self, angle: int) -> None:
         for i in range(len(self.servos)):
@@ -104,7 +107,7 @@ class RobotServosManager(ServosManager):
     def move_hands(self, right_angles: tuple[int], left_angles: tuple[int], rate: float = 0.01) -> None:
         self.move_servos(dict(zip(self.RIGHT_HAND_INDEXES + self.LEFT_HAND_INDEXES, right_angles + left_angles)), rate)
 
-    def move_hands_same(self, angles: tuple[int], rate: float = 0.01) -> None:
+    def move_hands_mirror(self, angles: tuple[int], rate: float = 0.01) -> None:
         self.move_hands(angles, angles, rate)
 
     def move_head(self, angle: int, rate: float = 0.02) -> None:
