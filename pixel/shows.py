@@ -75,16 +75,18 @@ def wait_for_unsmile(robot: Robot):
         pass
 
 def mimic_interaction(robot: Robot): # 40 s
-    robot.move_human_x(stop=True)
+    move_human_x_func = lambda: robot.move_human_x(True)
+    robot.add_to_loop(move_human_x_func)
     robot.add_to_loop(robot.mimic_movements)
     sleep(40)
+    robot.remove_from_loop(move_human_x_func)
     robot.remove_from_loop(robot.mimic_movements)
 
 def full_follow(robot: Robot): # 27 s
     robot.servos_manager.set_hands((HAND_DOWN)) 
     robot.add_to_loop(robot.follow_human)
     sleep(27)
-    robot.remove_from_loop(robot.remove_from_loop)
+    robot.remove_from_loop(robot.follow_human)
 
 def dance(robot: Robot):
     robot.servos_manager.set_hands(MUSCLE)
