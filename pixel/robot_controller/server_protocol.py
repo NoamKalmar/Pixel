@@ -5,7 +5,6 @@ from robot_controller.command import Command
 # Returns None - Remove all commands
 def get_command(data: bytes) -> Command | int | None:
     data = data.decode()
-    end = data.find("#")
     data = data[:data.find("#")]
     command_id, command_data = data.split(";", maxsplit=1)
     if command_data == "-":
