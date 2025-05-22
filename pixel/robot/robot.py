@@ -30,7 +30,7 @@ class Robot:
         self.servos_manager = servos_manager
         self.motors_manager = motors_manager
         self.mpu_z = mpu_z
-        self.loop_functions: set[Callable] = set()
+        self.loop_functions: list[Callable] = []
         self.angles = [[] for _ in range(7)]
         self.unwanted_boxes = []
         self.landmarks = {}
@@ -69,7 +69,7 @@ class Robot:
             function()
     
     def add_to_loop(self, function: Callable) -> None:
-        self.loop_functions.add(function)
+        self.loop_functions.append(function)
 
     def remove_from_loop(self, function: Callable) -> None:
         self.loop_functions.remove(function)
