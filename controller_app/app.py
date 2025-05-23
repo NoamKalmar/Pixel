@@ -254,7 +254,7 @@ class ControllerApp(tk.Tk):
             text="Play and abort",
             command=lambda name=show_name: self.play_and_abort(name)
         )
-        self.play_and_abort_button.grid(row=4, column=1, pady=20)
+        self.play_and_abort_button.grid(row=4, column=1)
 
         self.go_back_button = tk.Button(
             frame,
