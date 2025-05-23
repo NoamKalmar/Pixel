@@ -265,7 +265,3 @@ class Robot:
     def get_running_step_index(self) -> int:
         """If a show step is currently currning, returns its index, else return -1"""
         return self.current_running_step_index
-
-    def get_angle(self) -> int:
-        """Returns the robot current relative angle"""
-        return self.mpu_z.get_angle()
