@@ -249,6 +249,13 @@ class ControllerApp(tk.Tk):
         )
         self.end_show_button.grid(row=3, column=1)
 
+        self.play_and_abort_button = tk.Button(
+            frame, 
+            text="Play and abort",
+            command=lambda name=show_name: self.play_and_abort(name)
+        )
+        self.play_and_abort_button.grid(row=4, column=1, pady=20)
+
         self.go_back_button = tk.Button(
             frame,
             text="Back",
@@ -378,6 +385,10 @@ class ControllerApp(tk.Tk):
         self.default_all_steps()
         self.send_command(command)
         self.running_step_command_id = self.send_command(GET_RUNNING_COMMAND, True, False)
+
+    def play_and_abort(self, name: str):
+        self.send_command(PLAY_SHOW_COMMAND.replace("<name>", name))
+        self.disconnect()
         
     def change_servo_index(self, index: str) -> None:
         angle = self.servo_angles[int(index)]
