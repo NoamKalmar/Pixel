@@ -65,8 +65,11 @@ class Robot:
         return (0, None)
     
     def call_loop_functions(self) -> None:
-        for function in self.loop_functions:
-            function()
+        try:
+            for function in self.loop_functions:
+                function()
+        except:
+            return
     
     def add_to_loop(self, function: Callable) -> None:
         self.loop_functions.append(function)
