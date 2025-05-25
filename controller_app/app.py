@@ -40,7 +40,6 @@ class ControllerApp(tk.Tk):
         self.step_buttons: list[tk.Button] = []
         self.selected_step: int | None = None
         self.running_step_command_id: int | None = None
-        self.angle_command_id: int | None = None
         
         self.client = None
         self.ip_finder = IPFinder()
@@ -250,6 +249,13 @@ class ControllerApp(tk.Tk):
         )
         self.end_show_button.grid(row=3, column=1)
 
+        self.play_and_abort_button = tk.Button(
+            frame, 
+            text="Play and abort",
+            command=lambda name=show_name: self.play_and_abort(name)
+        )
+        self.play_and_abort_button.grid(row=4, column=1)
+
         self.go_back_button = tk.Button(
             frame,
             text="Back",
@@ -280,7 +286,6 @@ class ControllerApp(tk.Tk):
 
     def get_robot_data(self) -> None:
         self.client.get_command_value(GET_NAME_COMMAND, on_return=self.got_name)
-        self.angle_command_id = self.send_command(GET_ANGLE_COMMAND, True, False)
     
     def got_name(self, name: str | None) -> None:
         if name is None:
@@ -294,8 +299,6 @@ class ControllerApp(tk.Tk):
             self.is_connected_label.config(text="Connected", bg=GREEN)
         if not self.client:
             return
-        if self.client.got_command_response(self.angle_command_id):
-            self.angle_label.config(text=f"Angle: {self.client.commands_data[self.angle_command_id]}")
         if self.client.got_command_response(self.running_step_command_id):
             running_step = int(self.client.commands_data[self.running_step_command_id])
             if running_step == -1:
@@ -382,6 +385,10 @@ class ControllerApp(tk.Tk):
         self.default_all_steps()
         self.send_command(command)
         self.running_step_command_id = self.send_command(GET_RUNNING_COMMAND, True, False)
+
+    def play_and_abort(self, name: str):
+        self.send_command(PLAY_SHOW_COMMAND.replace("<name>", name))
+        self.disconnect()
         
     def change_servo_index(self, index: str) -> None:
         angle = self.servo_angles[int(index)]
