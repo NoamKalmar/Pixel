@@ -268,3 +268,10 @@ class Robot:
     def get_running_step_index(self) -> int:
         """If a show step is currently currning, returns its index, else return -1"""
         return self.current_running_step_index
+
+    def get_emotion_str(self) -> str:
+        """Finds the human emotion, returns either happy or sad"""
+        emotion = self.get_emotion()
+        if emotion == 0:
+            return "happy"
+        return "sad"
