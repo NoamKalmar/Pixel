@@ -41,9 +41,11 @@ class RobotController:
         try:
             while self.cap.isOpened():
                 key = cv2.waitKey(5)
-                if key == ord("q"):
+                if key == ord("p"):
+                    self.robot.run_show("main")
+                elif key == ord("q"):
                     break
-                if key == ord("r"):
+                elif key == ord("r"):
                     self.init_cap()
                 success, image = self.cap.read()
                 self.robot.loop(image, True)
