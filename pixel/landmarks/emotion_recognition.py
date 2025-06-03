@@ -19,7 +19,6 @@ def standardize(x) -> float:
 def get_model(input_shape) -> keras.Sequential:
     model = keras.Sequential([
         keras.Input(shape=(input_shape,)),
-        # layers.Lambda(standardize),
         layers.Flatten(),
         layers.Dense(256, activation="relu"),
         layers.Dense(128, activation="relu"),
