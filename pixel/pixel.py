@@ -24,8 +24,8 @@ HEAD_PIN = 8
 
 LEFT_MOTOR_PINS = (28, 30, 11)
 RIGHT_MOTOR_PINS = (40, 42, 13)
-BACK_MOTOR_PINS = (34, 36, 12)
-FRONT_MOTOR_PINS = (24, 22, 10)
+FRONT_MOTOR_PINS = (34, 36, 12)
+BACK_MOTOR_PINS = (24, 22, 10)
 
 SHOWS = [shows.MAIN_SHOW, shows.judges_show, shows.test_show]
 
