@@ -123,6 +123,16 @@ MAIN_SHOW = Show(name="main",
                     chase,
                  ])
 
+def mimic_movements(robot: Robot):
+    robot.add_to_loop(robot.mimic_movements)
+
+judges_show = Show(name="judges",
+                   steps=[
+                       wait_for_smile,
+                       wait_for_unsmile,
+                       mimic_movements
+                   ])
+
 def wait2(robot):
     print("2 seconds")
 

@@ -27,7 +27,7 @@ RIGHT_MOTOR_PINS = (40, 42, 13)
 BACK_MOTOR_PINS = (34, 36, 12)
 FRONT_MOTOR_PINS = (24, 22, 10)
 
-SHOWS = [shows.MAIN_SHOW, shows.test_show]
+SHOWS = [shows.MAIN_SHOW, shows.judges_show, shows.test_show]
 
 mp_holistic = mp.solutions.holistic
 
