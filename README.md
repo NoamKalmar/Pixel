@@ -3,4 +3,4 @@ Pixel was the primary robot of team Roboseum that won 1st place in the 2025 Euro
 Pixel is a mummy-like robot that can mimic human hand gestures in real time, follow a human, detect different emotions and perform different gestures that are defined in advance.
 
 ## Mimicking Demo
-https://github.com/user-attachments/assets/0edabf16-e418-47de-a4bf-a042d2a28a15
+https://github.com/user-attachments/assets/d1420a4c-199f-4904-83d0-17f59a5b7d29
